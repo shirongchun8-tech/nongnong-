@@ -1,5 +1,5 @@
 import { courseData } from "./data/courseData.js";
-import { speakFrench } from "./speech.js";
+import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import { loadProgress, resetProgress, saveReview } from "./storage.js";
 
 const app = document.querySelector("#app");
@@ -29,6 +29,8 @@ function slowButton(text) {
 
 function renderShell(content) {
   const totalSeen = Object.values(state.progress).reduce((sum, item) => sum + item.seen, 0);
+  const voices = getVoiceOptions();
+  const selectedVoice = getSelectedVoiceName();
   return `
     <header class="topbar">
       <div>
@@ -42,6 +44,25 @@ function renderShell(content) {
     </header>
     <main class="layout">
       <aside class="sidebar">
+        <section class="voice-panel">
+          <label for="voice-select">法语声音</label>
+          <select id="voice-select" data-voice-select>
+            ${
+              voices.length
+                ? voices
+                    .map(
+                      (voice) => `
+                        <option value="${escapeHtml(voice.name)}" ${voice.name === selectedVoice ? "selected" : ""}>
+                          ${escapeHtml(voice.name)} · ${escapeHtml(voice.lang)}
+                        </option>
+                      `,
+                    )
+                    .join("")
+                : `<option value="">没有检测到法语语音</option>`
+            }
+          </select>
+          <p>${voices.length ? "如果读音奇怪，换一个 French/Français voice。" : "系统没有法语语音时会像英文发音。请在系统设置里安装 French voice。"}</p>
+        </section>
         <div class="stat">
           <strong>${courseData.reviewCards.length}</strong>
           <span>可复习卡片</span>
@@ -249,5 +270,15 @@ app.addEventListener("click", (event) => {
     render();
   }
 });
+
+app.addEventListener("change", (event) => {
+  if (event.target.matches("[data-voice-select]")) {
+    setSelectedVoiceName(event.target.value);
+    speakFrench("Bonjour, je m'appelle Thomas.");
+    render();
+  }
+});
+
+window.addEventListener("frenchVoicesChanged", render);
 
 render();
