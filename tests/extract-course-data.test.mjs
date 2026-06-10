@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { parseCourseMarkdown } from "../scripts/extract-course-data.mjs";
+import { buildCourseDataFromIndex, lookupWord, parseCourseMarkdown, tokenizeFrenchText } from "../scripts/extract-course-data.mjs";
 
 const sample = `# Conversation française - Révision finale
 
@@ -42,3 +42,32 @@ assert.equal(data.chapters[0].oralQuestions[0].example, "J'habite dans un appart
 assert.ok(data.reviewCards.some((card) => card.front === "une maison"));
 assert.ok(data.reviewCards.some((card) => card.front === "J'habite dans un appartement."));
 assert.ok(data.reviewCards.some((card) => card.type === "dialogue" && card.teacher === "Quel logement avez-vous ?"));
+assert.deepEqual(tokenizeFrenchText("J'habite dans un appartement."), ["j'", "habite", "dans", "un", "appartement"]);
+assert.equal(lookupWord("vais").lemma, "aller");
+assert.equal(lookupWord("vais").pos, "动词");
+assert.ok(data.chapters[0].wordBank.some((word) => word.lemma === "avoir" && word.forms.includes("avez")));
+assert.ok(data.chapters[0].wordBank.some((word) => word.lemma === "appartement" && word.example.includes("appartement")));
+
+const indexData = {
+  courses: [
+    {
+      course: 1,
+      topic: "Prononciation",
+      grammar: ["Le verbe être"],
+      vocabulary: Array.from({ length: 55 }, (_, index) => ({
+        word: index === 0 ? "suis" : `mot${index}`,
+        frequency: 5,
+        example: index === 0 ? "Je suis étudiant." : `Je regarde le mot${index}.`,
+      })),
+      phrases: ["Je suis", "un téléphone"],
+      sentences: ["Je suis étudiant.", "C'est un téléphone."],
+      dialogues: ["A: Bonjour !\nB: Bonjour !"],
+    },
+  ],
+};
+const fullCourseData = buildCourseDataFromIndex(indexData);
+assert.equal(fullCourseData.chapters.length, 1);
+assert.equal(fullCourseData.chapters[0].vocabulary.length, 55);
+assert.equal(fullCourseData.chapters[0].grammar.length, 1);
+assert.equal(fullCourseData.chapters[0].learningPath.join(" -> "), "单词 -> 短语 -> 句子 -> 对话/课文");
+assert.ok(fullCourseData.reviewCards.some((card) => card.type === "vocabulary" && card.wordKey === "être"));

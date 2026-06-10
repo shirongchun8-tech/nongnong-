@@ -70,6 +70,13 @@ button.active {
   gap: 8px;
 }
 
+.top-actions button,
+.study-controls button,
+.review-actions button,
+.word-actions button {
+  min-height: 44px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -168,6 +175,27 @@ nav {
   color: var(--muted);
 }
 
+.study-controls {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.mode-tabs,
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.study-controls p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .section-title {
   display: flex;
   align-items: center;
@@ -194,6 +222,10 @@ nav {
   gap: 10px;
 }
 
+.vocab-grid.dense {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
 .vocab-item,
 .sentence-item,
 .exercise-item {
@@ -205,13 +237,37 @@ nav {
 
 .vocab-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+}
+
+.word-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .vocab-copy {
   flex: 1;
   min-width: 0;
+}
+
+.word-title {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font-weight: 900;
+  font-size: 20px;
+  text-align: left;
+}
+
+.meta {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .vocab-visual,
@@ -276,8 +332,9 @@ nav {
 }
 
 .icon-button {
-  min-width: 38px;
-  padding: 6px 9px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 11px;
   border-color: #a7c7c3;
   color: var(--accent-dark);
 }
@@ -297,6 +354,45 @@ nav {
 .exercise-list {
   display: grid;
   gap: 10px;
+}
+
+.inline-word {
+  display: inline;
+  min-height: 0;
+  padding: 1px 3px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  line-height: inherit;
+}
+
+.inline-word.status-unknown {
+  background: #fff1f2;
+  color: #be123c;
+  box-shadow: inset 0 -2px 0 #fb7185;
+}
+
+.inline-word.status-fuzzy {
+  background: #fffbeb;
+  color: #92400e;
+  box-shadow: inset 0 -2px 0 #fbbf24;
+}
+
+.inline-word.status-known {
+  color: inherit;
+}
+
+.status-unknown {
+  border-color: #fecdd3;
+}
+
+.status-fuzzy {
+  border-color: #fde68a;
+}
+
+.status-known {
+  border-color: #bbf7d0;
 }
 
 .sentence-main,
@@ -346,6 +442,71 @@ nav {
   border-radius: 8px;
   background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
   padding: 28px;
+}
+
+.grammar-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink);
+}
+
+.grammar-list li {
+  margin: 7px 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.dialogue-block p {
+  margin: 7px 0;
+}
+
+.word-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.word-actions.large button {
+  flex: 1;
+}
+
+.lookup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: end center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.lookup-popover {
+  width: min(560px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18);
+}
+
+.lookup-popover h2 {
+  margin: 6px 0;
+  font-size: 32px;
+}
+
+.lookup-popover .close {
+  float: right;
+}
+
+.lookup-example {
+  padding: 10px;
+  background: var(--soft);
+  border-radius: 8px;
 }
 
 .flashcard h2 {
@@ -417,7 +578,9 @@ nav {
   }
 
   nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+    max-height: 240px;
+    overflow: auto;
   }
 
   .sentence-main,
@@ -439,5 +602,34 @@ nav {
 
   .dialogue-line.student {
     margin-left: 0;
+  }
+
+  button {
+    min-height: 48px;
+    padding: 10px 13px;
+  }
+
+  .icon-button {
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .vocab-grid.dense {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-tabs button,
+  .toggles button,
+  .review-actions button,
+  .word-actions button {
+    flex: 1 1 42%;
+  }
+
+  .lookup-backdrop {
+    padding: 10px;
+  }
+
+  .lookup-popover {
+    max-height: 92vh;
   }
 }
