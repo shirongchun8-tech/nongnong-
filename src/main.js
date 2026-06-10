@@ -1,4 +1,4 @@
-import { courseData } from "./data/courseData.js";
+import { courseData } from "./data/courseData.js?v=ui-polish";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
   getWordStatus,
@@ -62,19 +62,38 @@ function currentChapter() {
   return courseData.chapters.find((item) => item.id === state.chapterId) || courseData.chapters[0];
 }
 
+function normalizeVocabItem(item) {
+  const lemma = item.lemma || item.french || item.front || item.word || "";
+  const key = item.key || lemma.toLowerCase();
+  return {
+    ...item,
+    key,
+    lemma,
+    pos: item.pos || "词汇",
+    chinese: item.chinese || item.back || "课程词汇",
+    forms: Array.isArray(item.forms) && item.forms.length ? item.forms : [lemma].filter(Boolean),
+    frequency: item.frequency || 1,
+    example: item.example || "",
+  };
+}
+
 function findWord(chapter, rawWord) {
   const normalized = normalizeWord(rawWord);
   const key = chapter.wordIndex?.[normalized] || chapter.wordIndex?.[normalized.replace(/s$/, "")] || normalized;
-  return chapter.vocabulary.find((word) => word.key === key || word.lemma.toLowerCase() === key);
+  const found = chapter.vocabulary.find((word) => {
+    const item = normalizeVocabItem(word);
+    return item.key === key || item.lemma.toLowerCase() === key;
+  });
+  return found ? normalizeVocabItem(found) : null;
 }
 
 function wordStatus(word) {
-  return getWordStatus(state.wordProgress, word.key);
+  return getWordStatus(state.wordProgress, normalizeVocabItem(word).key);
 }
 
 function chapterStats(chapter) {
   const total = chapter.vocabulary.length;
-  const known = chapter.vocabulary.filter((word) => wordStatus(word) === "known").length;
+  const known = chapter.vocabulary.map(normalizeVocabItem).filter((word) => wordStatus(word) === "known").length;
   return { total, known, weak: total - known };
 }
 
@@ -187,8 +206,9 @@ function renderStudyControls(chapter) {
 }
 
 function filteredWords(chapter) {
-  if (!state.onlyWeak) return chapter.vocabulary;
-  return chapter.vocabulary.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
+  const words = chapter.vocabulary.map(normalizeVocabItem);
+  if (!state.onlyWeak) return words;
+  return words.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
 }
 
 function renderWords(chapter) {
@@ -202,20 +222,21 @@ function renderWords(chapter) {
       <div class="vocab-grid dense">
         ${words
           .map((word) => {
-            const status = wordStatus(word);
+            const normalizedWord = normalizeVocabItem(word);
+            const status = wordStatus(normalizedWord);
             return `
               <article class="vocab-item word-card status-${status}">
                 <div class="vocab-copy">
-                  <button class="word-title" data-lookup="${word.key}" lang="fr">${escapeHtml(word.lemma)}</button>
-                  <span class="meta">${escapeHtml(word.pos)} · ${escapeHtml(word.forms.join(", "))}</span>
-                  <p>${escapeHtml(word.chinese)}</p>
-                  ${word.example ? `<small>${renderClickableSentence(word.example, chapter)}</small>` : ""}
+                  <button class="word-title" data-lookup="${normalizedWord.key}" lang="fr">${escapeHtml(normalizedWord.lemma)}</button>
+                  <span class="meta">${escapeHtml(normalizedWord.pos)} · ${escapeHtml(normalizedWord.forms.join(", "))}</span>
+                  <p>${escapeHtml(normalizedWord.chinese)}</p>
+                  ${normalizedWord.example ? `<small>${renderClickableSentence(normalizedWord.example, chapter)}</small>` : ""}
                 </div>
-                ${listenActions(word.lemma)}
+                ${listenActions(normalizedWord.lemma)}
                 <div class="word-actions">
-                  <button data-word-rate="${word.key}:known">认识</button>
-                  <button data-word-rate="${word.key}:fuzzy">模糊</button>
-                  <button data-word-rate="${word.key}:unknown">不认识</button>
+                  <button data-word-rate="${normalizedWord.key}:known">认识</button>
+                  <button data-word-rate="${normalizedWord.key}:fuzzy">模糊</button>
+                  <button data-word-rate="${normalizedWord.key}:unknown">不认识</button>
                 </div>
               </article>
             `;
@@ -448,24 +469,25 @@ function renderLookup() {
   if (!state.lookupWordKey) return "";
   const chapter = currentChapter();
   const word = chapter.vocabulary.find((item) => item.key === state.lookupWordKey);
-  if (!word) return "";
-  const status = wordStatus(word);
+  const normalizedWord = word ? normalizeVocabItem(word) : null;
+  if (!normalizedWord) return "";
+  const status = wordStatus(normalizedWord);
   return `
     <div class="lookup-backdrop" data-close-lookup>
       <aside class="lookup-popover" role="dialog" aria-modal="true">
         <button class="text-button close" data-close-lookup>关闭</button>
         <p class="eyebrow">点击查词</p>
-        <h2 lang="fr">${escapeHtml(word.lemma)}</h2>
-        <p>${escapeHtml(word.chinese)}</p>
-        <p><strong>词性：</strong>${escapeHtml(word.pos)}</p>
-        <p><strong>出现形式：</strong>${escapeHtml(word.forms.join(", "))}</p>
+        <h2 lang="fr">${escapeHtml(normalizedWord.lemma)}</h2>
+        <p>${escapeHtml(normalizedWord.chinese)}</p>
+        <p><strong>词性：</strong>${escapeHtml(normalizedWord.pos)}</p>
+        <p><strong>出现形式：</strong>${escapeHtml(normalizedWord.forms.join(", "))}</p>
         <p><strong>状态：</strong>${status === "known" ? "已掌握" : status === "fuzzy" ? "模糊" : "未掌握"}</p>
-        ${word.example ? `<p class="lookup-example">${escapeHtml(word.example)}</p>` : ""}
-        ${listenActions(word.lemma)}
+        ${normalizedWord.example ? `<p class="lookup-example">${escapeHtml(normalizedWord.example)}</p>` : ""}
+        ${listenActions(normalizedWord.lemma)}
         <div class="word-actions large">
-          <button data-word-rate="${word.key}:known">认识</button>
-          <button data-word-rate="${word.key}:fuzzy">模糊</button>
-          <button data-word-rate="${word.key}:unknown">不认识</button>
+          <button data-word-rate="${normalizedWord.key}:known">认识</button>
+          <button data-word-rate="${normalizedWord.key}:fuzzy">模糊</button>
+          <button data-word-rate="${normalizedWord.key}:unknown">不认识</button>
         </div>
       </aside>
     </div>
