@@ -1,0 +1,11 @@
+{
+  "name": "french-study-tool",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "extract": "node scripts/extract-course-data.mjs",
+    "test": "node tests/extract-course-data.test.mjs",
+    "build": "node scripts/extract-course-data.mjs && node scripts/build.mjs"
+  }
+}
