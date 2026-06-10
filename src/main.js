@@ -27,6 +27,14 @@ function slowButton(text) {
   return `<button class="icon-button muted" data-slow="${escapeHtml(text)}" title="慢速播放" aria-label="慢速播放">慢</button>`;
 }
 
+function extraSlowButton(text) {
+  return `<button class="icon-button extra-slow" data-extra-slow="${escapeHtml(text)}" title="超慢播放" aria-label="超慢播放">超慢</button>`;
+}
+
+function listenActions(text, label = "播放") {
+  return `<div class="listen-actions">${playButton(text, label)}${slowButton(text)}${extraSlowButton(text)}</div>`;
+}
+
 function renderShell(content) {
   const totalSeen = Object.values(state.progress).reduce((sum, item) => sum + item.seen, 0);
   const voices = getVoiceOptions();
@@ -101,11 +109,14 @@ function renderVocab(chapter) {
           .map(
             (item) => `
               <article class="vocab-item">
-                <div>
+                <div class="vocab-visual" aria-hidden="true">${escapeHtml(item.visual || "◇")}</div>
+                <div class="vocab-copy">
                   <strong lang="fr">${escapeHtml(item.french)}</strong>
+                  ${item.ipa ? `<span class="ipa">${escapeHtml(item.ipa)}</span>` : ""}
                   <p>${escapeHtml(item.chinese)}</p>
+                  ${item.hint ? `<small>${escapeHtml(item.hint)}</small>` : ""}
                 </div>
-                <div class="listen-actions">${playButton(item.french)}${slowButton(item.french)}</div>
+                ${listenActions(item.french)}
               </article>
             `,
           )
@@ -162,7 +173,7 @@ function renderOral(chapter) {
                 ${item.question ? `<p class="prompt" lang="fr">${escapeHtml(item.question)}</p>` : ""}
                 <div class="sentence-main">
                   <p lang="fr">${escapeHtml(item.example)}</p>
-                  <div class="listen-actions">${playButton(item.example, "播放例句")}${slowButton(item.example)}</div>
+                  ${listenActions(item.example, "播放例句")}
                 </div>
                 <p class="translation">${escapeHtml(item.chinese)}</p>
               </article>
@@ -209,15 +220,12 @@ function renderReviewView() {
         <button class="text-button" data-reset-progress>重置进度</button>
       </div>
       <article class="flashcard ${state.cardFlipped ? "flipped" : ""}" data-flip-card>
-        <p class="eyebrow">${card.type === "vocabulary" ? "词汇" : "句子"} ${card.chapter ? `· ${escapeHtml(card.chapter)}` : ""}</p>
-        <h2 lang="fr">${escapeHtml(card.front)}</h2>
-        <div class="listen-row">
-          ${playButton(card.front, "播放卡片")}
-          ${slowButton(card.front)}
-        </div>
+        <p class="eyebrow">${card.type === "vocabulary" ? "词汇" : card.type === "dialogue" ? "口语对话" : "句子"} ${card.chapter ? `· ${escapeHtml(card.chapter)}` : ""}</p>
+        ${renderCardFront(card)}
         <div class="card-back">
           <p>${escapeHtml(card.back)}</p>
-          ${card.prompt ? `<small lang="fr">Q: ${escapeHtml(card.prompt)}</small>` : ""}
+          ${card.ipa ? `<small class="ipa">${escapeHtml(card.ipa)}</small>` : ""}
+          ${card.hint ? `<small>${escapeHtml(card.hint)}</small>` : ""}
         </div>
       </article>
       <div class="review-actions">
@@ -231,6 +239,39 @@ function renderReviewView() {
   `);
 }
 
+function renderCardFront(card) {
+  if (card.type === "vocabulary") {
+    return `
+      <div class="card-visual" aria-hidden="true">${escapeHtml(card.visual || "◇")}</div>
+      <h2 lang="fr">${escapeHtml(card.front)}</h2>
+      ${card.ipa ? `<p class="ipa big">${escapeHtml(card.ipa)}</p>` : ""}
+      <div class="listen-row">${playButton(card.front, "播放卡片")}${slowButton(card.front)}${extraSlowButton(card.front)}</div>
+    `;
+  }
+
+  if (card.type === "dialogue") {
+    return `
+      <div class="dialogue-card">
+        <div class="dialogue-line teacher">
+          <span>Professeur</span>
+          <p lang="fr">${escapeHtml(card.teacher)}</p>
+          ${listenActions(card.teacher, "播放问题")}
+        </div>
+        <div class="dialogue-line student">
+          <span>Moi</span>
+          <p lang="fr">${escapeHtml(card.student)}</p>
+          ${listenActions(card.student, "播放回答")}
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <h2 lang="fr">${escapeHtml(card.front)}</h2>
+    <div class="listen-row">${playButton(card.front, "播放卡片")}${slowButton(card.front)}${extraSlowButton(card.front)}</div>
+  `;
+}
+
 function render() {
   app.innerHTML = state.view === "review" ? renderReviewView() : renderChapterView();
 }
@@ -241,6 +282,7 @@ app.addEventListener("click", (event) => {
 
   if (target.dataset.speak) speakFrench(target.dataset.speak);
   if (target.dataset.slow) speakFrench(target.dataset.slow, { slow: true });
+  if (target.dataset.extraSlow) speakFrench(target.dataset.extraSlow, { extraSlow: true });
   if (target.dataset.view) {
     state.view = target.dataset.view;
     render();

@@ -8,79 +8,136 @@ export const courseData = {
       "vocabulary": [
         {
           "french": "une habitation",
-          "chinese": "住宅，住处"
+          "chinese": "住宅，住处",
+          "ipa": "/yn abitasjɔ̃/",
+          "visual": "⌂",
+          "hint": "habitation 指住处，想象一个可以住进去的房子。"
         },
         {
           "french": "un logement",
-          "chinese": "住房"
+          "chinese": "住房",
+          "ipa": "/œ̃ lɔʒmɑ̃/",
+          "visual": "▣",
+          "hint": "logement 是住房，像一格可以入住的空间。"
         },
         {
           "french": "une maison",
-          "chinese": "房子"
+          "chinese": "房子",
+          "ipa": "/yn mɛzɔ̃/",
+          "visual": "⌂",
+          "hint": "想象一栋小房子，maison 就是家/房子。"
         },
         {
           "french": "un appartement",
-          "chinese": "公寓"
+          "chinese": "公寓",
+          "ipa": "/œ̃n‿apaʁtəmɑ̃/",
+          "visual": "▤",
+          "hint": "appartement 像楼里的一间公寓。"
         },
         {
           "french": "un studio",
-          "chinese": "单间公寓"
+          "chinese": "单间公寓",
+          "ipa": "/œ̃ stydjo/",
+          "visual": "▢",
+          "hint": "studio 是小单间，想象一个小方间。"
         },
         {
           "french": "une pièce",
-          "chinese": "房间"
+          "chinese": "房间",
+          "ipa": "/yn pjɛs/",
+          "visual": "□",
+          "hint": "pièce 是房间，也可以像一块空间。"
         },
         {
           "french": "une chambre",
-          "chinese": "卧室"
+          "chinese": "卧室",
+          "ipa": "/yn ʃɑ̃bʁ/",
+          "visual": "◫",
+          "hint": "chambre 是卧室，想象床所在的房间。"
         },
         {
           "french": "une cuisine",
-          "chinese": "厨房"
+          "chinese": "厨房",
+          "ipa": "/yn kɥizin/",
+          "visual": "▥",
+          "hint": "cuisine 是厨房，发音里有 /kɥi/ 的滑音。"
         },
         {
           "french": "une bibliothèque",
-          "chinese": "图书馆"
+          "chinese": "图书馆",
+          "ipa": "/yn biblijɔtɛk/",
+          "visual": "▤",
+          "hint": "bibliothèque 是图书馆，想象一排书架。"
         },
         {
           "french": "une gare",
-          "chinese": "火车站"
+          "chinese": "火车站",
+          "ipa": "/yn gaʁ/",
+          "visual": "▭",
+          "hint": "gare 是火车站，/ʁ/ 是法语小舌音。"
         },
         {
           "french": "un musée",
-          "chinese": "博物馆"
+          "chinese": "博物馆",
+          "ipa": "/œ̃ myze/",
+          "visual": "▧",
+          "hint": "musée 是博物馆，注意 u 是圆唇 /y/。"
         },
         {
           "french": "à côté de",
-          "chinese": "在旁边"
+          "chinese": "在旁边",
+          "ipa": "/a kote də/",
+          "visual": "↔",
+          "hint": "côté 是旁边，想象两样东西靠在一起。"
         },
         {
           "french": "en face de",
-          "chinese": "在对面"
+          "chinese": "在对面",
+          "ipa": "/ɑ̃ fas də/",
+          "visual": "⇄",
+          "hint": "face 是面对，表示在对面。"
         },
         {
           "french": "au-dessus de",
-          "chinese": "在上方"
+          "chinese": "在上方",
+          "ipa": "/o dəsy də/",
+          "visual": "↑",
+          "hint": "dessus 是上面，想象箭头向上。"
         },
         {
           "french": "sous",
-          "chinese": "在下面"
+          "chinese": "在下面",
+          "ipa": "/su/",
+          "visual": "↓",
+          "hint": "sous 是下面，想象箭头向下。"
         },
         {
           "french": "loin de",
-          "chinese": "离...远"
+          "chinese": "离...远",
+          "ipa": "/lwɛ̃ də/",
+          "visual": "↗",
+          "hint": "loin 是远，发 /lwɛ̃/。"
         },
         {
           "french": "à droite de",
-          "chinese": "在...右边"
+          "chinese": "在...右边",
+          "ipa": "/a dʁwat də/",
+          "visual": "→",
+          "hint": "droite 是右边，记右箭头。"
         },
         {
           "french": "à la campagne",
-          "chinese": "在乡下"
+          "chinese": "在乡下",
+          "ipa": "/a la kɑ̃paɲ/",
+          "visual": "▵",
+          "hint": "campagne 是乡下，想象田野。"
         },
         {
           "french": "en centre-ville",
-          "chinese": "在市中心"
+          "chinese": "在市中心",
+          "ipa": "/ɑ̃ sɑ̃tʁ vil/",
+          "visual": "◎",
+          "hint": "centre-ville 是市中心，想象城市中心点。"
         }
       ],
       "exercises": [
@@ -233,71 +290,122 @@ export const courseData = {
       "vocabulary": [
         {
           "french": "se déplacer",
-          "chinese": "移动，出行"
+          "chinese": "移动，出行",
+          "ipa": "/sə deplase/",
+          "visual": "⇢",
+          "hint": "se déplacer 是移动/出行，想象人从 A 到 B。"
         },
         {
           "french": "prendre le métro",
-          "chinese": "坐地铁"
+          "chinese": "坐地铁",
+          "ipa": "/pʁɑ̃dʁ lə metʁo/",
+          "visual": "▱",
+          "hint": "prendre le métro 是坐地铁，métro 重音在最后。"
         },
         {
           "french": "prendre le bus",
-          "chinese": "坐公交"
+          "chinese": "坐公交",
+          "ipa": "/pʁɑ̃dʁ lə bys/",
+          "visual": "▰",
+          "hint": "bus 的 u 是圆唇 /y/，不要读成英语 bus。"
         },
         {
           "french": "prendre le train",
-          "chinese": "坐火车"
+          "chinese": "坐火车",
+          "ipa": "/pʁɑ̃dʁ lə tʁɛ̃/",
+          "visual": "▭",
+          "hint": "train 结尾是鼻化音 /ɛ̃/。"
         },
         {
           "french": "marcher",
-          "chinese": "步行"
+          "chinese": "步行",
+          "ipa": "/maʁʃe/",
+          "visual": "⇥",
+          "hint": "marcher 是走路，/ʃ/ 像 sh。"
         },
         {
           "french": "aller",
-          "chinese": "去"
+          "chinese": "去",
+          "ipa": "/ale/",
+          "visual": "→",
+          "hint": "aller 是去，常用于 futur proche。"
         },
         {
           "french": "venir",
-          "chinese": "来"
+          "chinese": "来",
+          "ipa": "/vəniʁ/",
+          "visual": "←",
+          "hint": "venir 是来，结尾 /ʁ/ 不要读英语 r。"
         },
         {
           "french": "rouler",
-          "chinese": "行驶，滚动"
+          "chinese": "行驶，滚动",
+          "ipa": "/ʁule/",
+          "visual": "○",
+          "hint": "rouler 是滚动/行驶，想象车轮。"
         },
         {
           "french": "voler",
-          "chinese": "飞"
+          "chinese": "飞",
+          "ipa": "/vɔle/",
+          "visual": "△",
+          "hint": "voler 是飞，想象向上飞。"
         },
         {
           "french": "monter dans le métro",
-          "chinese": "上地铁"
+          "chinese": "上地铁",
+          "ipa": "/mɔ̃te dɑ̃ lə metʁo/",
+          "visual": "↥",
+          "hint": "monter 是上车，dans 表示进入里面。"
         },
         {
           "french": "descendre du métro",
-          "chinese": "下地铁"
+          "chinese": "下地铁",
+          "ipa": "/desɑ̃dʁ dy metʁo/",
+          "visual": "↧",
+          "hint": "descendre 是下车，du = de + le。"
         },
         {
           "french": "changer de ligne",
-          "chinese": "换线"
+          "chinese": "换线",
+          "ipa": "/ʃɑ̃ʒe də liɲ/",
+          "visual": "⇆",
+          "hint": "changer 是换，ligne 是线路。"
         },
         {
           "french": "sortir de la station",
-          "chinese": "出地铁站"
+          "chinese": "出地铁站",
+          "ipa": "/sɔʁtiʁ də la stasjɔ̃/",
+          "visual": "↱",
+          "hint": "sortir 是出来，station 是车站。"
         },
         {
           "french": "une ligne de métro",
-          "chinese": "地铁线路"
+          "chinese": "地铁线路",
+          "ipa": "/yn liɲ də metʁo/",
+          "visual": "═",
+          "hint": "ligne 是线，想象地铁线路。"
         },
         {
           "french": "une station",
-          "chinese": "车站"
+          "chinese": "车站",
+          "ipa": "/yn stasjɔ̃/",
+          "visual": "□",
+          "hint": "station 是站，结尾是鼻化 /jɔ̃/。"
         },
         {
           "french": "une destination",
-          "chinese": "目的地"
+          "chinese": "目的地",
+          "ipa": "/yn dɛstinasjɔ̃/",
+          "visual": "◎",
+          "hint": "destination 是目的地。"
         },
         {
           "french": "le prochain arrêt",
-          "chinese": "下一站"
+          "chinese": "下一站",
+          "ipa": "/lə pʁɔʃɛ̃n‿aʁɛ/",
+          "visual": "■",
+          "hint": "prochain arrêt 是下一站。"
         }
       ],
       "exercises": [
@@ -686,47 +794,80 @@ export const courseData = {
       "vocabulary": [
         {
           "french": "voyager",
-          "chinese": "旅行"
+          "chinese": "旅行",
+          "ipa": "/vwajaʒe/",
+          "visual": "✈",
+          "hint": "voyager 是旅行，/wa/ 开头。"
         },
         {
           "french": "visiter",
-          "chinese": "参观，游览"
+          "chinese": "参观，游览",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "visiter：参观，游览"
         },
         {
           "french": "s'amuser",
-          "chinese": "玩得开心"
+          "chinese": "玩得开心",
+          "ipa": "/samyze/",
+          "visual": "☆",
+          "hint": "s'amuser 是玩得开心。"
         },
         {
           "french": "jouer",
-          "chinese": "玩，进行游戏/运动"
+          "chinese": "玩，进行游戏/运动",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "jouer：玩，进行游戏/运动"
         },
         {
           "french": "un lieu touristique",
-          "chinese": "旅游景点"
+          "chinese": "旅游景点",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "un lieu touristique：旅游景点"
         },
         {
           "french": "rester à l'hôtel",
-          "chinese": "待在酒店"
+          "chinese": "待在酒店",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "rester à l'hôtel：待在酒店"
         },
         {
           "french": "jouer aux jeux vidéo",
-          "chinese": "玩电子游戏"
+          "chinese": "玩电子游戏",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "jouer aux jeux vidéo：玩电子游戏"
         },
         {
           "french": "jouer au football",
-          "chinese": "踢足球"
+          "chinese": "踢足球",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "jouer au football：踢足球"
         },
         {
           "french": "à l'extérieur",
-          "chinese": "在外面，户外"
+          "chinese": "在外面，户外",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "à l'extérieur：在外面，户外"
         },
         {
           "french": "avec mes amis",
-          "chinese": "和我的朋友们"
+          "chinese": "和我的朋友们",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "avec mes amis：和我的朋友们"
         },
         {
           "french": "indispensable",
-          "chinese": "必不可少的"
+          "chinese": "必不可少的",
+          "ipa": "",
+          "visual": "◇",
+          "hint": "indispensable：必不可少的"
         }
       ],
       "exercises": [],
@@ -908,346 +1049,503 @@ export const courseData = {
       "id": "vocab-1",
       "type": "vocabulary",
       "front": "une habitation",
-      "back": "住宅，住处"
+      "back": "住宅，住处",
+      "ipa": "/yn abitasjɔ̃/",
+      "visual": "⌂",
+      "hint": "habitation 指住处，想象一个可以住进去的房子。"
     },
     {
       "id": "vocab-2",
       "type": "vocabulary",
       "front": "un logement",
-      "back": "住房"
+      "back": "住房",
+      "ipa": "/œ̃ lɔʒmɑ̃/",
+      "visual": "▣",
+      "hint": "logement 是住房，像一格可以入住的空间。"
     },
     {
       "id": "vocab-3",
       "type": "vocabulary",
       "front": "une maison",
-      "back": "房子"
+      "back": "房子",
+      "ipa": "/yn mɛzɔ̃/",
+      "visual": "⌂",
+      "hint": "想象一栋小房子，maison 就是家/房子。"
     },
     {
       "id": "vocab-4",
       "type": "vocabulary",
       "front": "un appartement",
-      "back": "公寓"
+      "back": "公寓",
+      "ipa": "/œ̃n‿apaʁtəmɑ̃/",
+      "visual": "▤",
+      "hint": "appartement 像楼里的一间公寓。"
     },
     {
       "id": "vocab-5",
       "type": "vocabulary",
       "front": "un studio",
-      "back": "单间公寓"
+      "back": "单间公寓",
+      "ipa": "/œ̃ stydjo/",
+      "visual": "▢",
+      "hint": "studio 是小单间，想象一个小方间。"
     },
     {
       "id": "vocab-6",
       "type": "vocabulary",
       "front": "une pièce",
-      "back": "房间"
+      "back": "房间",
+      "ipa": "/yn pjɛs/",
+      "visual": "□",
+      "hint": "pièce 是房间，也可以像一块空间。"
     },
     {
       "id": "vocab-7",
       "type": "vocabulary",
       "front": "une chambre",
-      "back": "卧室"
+      "back": "卧室",
+      "ipa": "/yn ʃɑ̃bʁ/",
+      "visual": "◫",
+      "hint": "chambre 是卧室，想象床所在的房间。"
     },
     {
       "id": "vocab-8",
       "type": "vocabulary",
       "front": "une cuisine",
-      "back": "厨房"
+      "back": "厨房",
+      "ipa": "/yn kɥizin/",
+      "visual": "▥",
+      "hint": "cuisine 是厨房，发音里有 /kɥi/ 的滑音。"
     },
     {
       "id": "vocab-9",
       "type": "vocabulary",
       "front": "une bibliothèque",
-      "back": "图书馆"
+      "back": "图书馆",
+      "ipa": "/yn biblijɔtɛk/",
+      "visual": "▤",
+      "hint": "bibliothèque 是图书馆，想象一排书架。"
     },
     {
       "id": "vocab-10",
       "type": "vocabulary",
       "front": "une gare",
-      "back": "火车站"
+      "back": "火车站",
+      "ipa": "/yn gaʁ/",
+      "visual": "▭",
+      "hint": "gare 是火车站，/ʁ/ 是法语小舌音。"
     },
     {
       "id": "vocab-11",
       "type": "vocabulary",
       "front": "un musée",
-      "back": "博物馆"
+      "back": "博物馆",
+      "ipa": "/œ̃ myze/",
+      "visual": "▧",
+      "hint": "musée 是博物馆，注意 u 是圆唇 /y/。"
     },
     {
       "id": "vocab-12",
       "type": "vocabulary",
       "front": "à côté de",
-      "back": "在旁边"
+      "back": "在旁边",
+      "ipa": "/a kote də/",
+      "visual": "↔",
+      "hint": "côté 是旁边，想象两样东西靠在一起。"
     },
     {
       "id": "vocab-13",
       "type": "vocabulary",
       "front": "en face de",
-      "back": "在对面"
+      "back": "在对面",
+      "ipa": "/ɑ̃ fas də/",
+      "visual": "⇄",
+      "hint": "face 是面对，表示在对面。"
     },
     {
       "id": "vocab-14",
       "type": "vocabulary",
       "front": "au-dessus de",
-      "back": "在上方"
+      "back": "在上方",
+      "ipa": "/o dəsy də/",
+      "visual": "↑",
+      "hint": "dessus 是上面，想象箭头向上。"
     },
     {
       "id": "vocab-15",
       "type": "vocabulary",
       "front": "sous",
-      "back": "在下面"
+      "back": "在下面",
+      "ipa": "/su/",
+      "visual": "↓",
+      "hint": "sous 是下面，想象箭头向下。"
     },
     {
       "id": "vocab-16",
       "type": "vocabulary",
       "front": "loin de",
-      "back": "离...远"
+      "back": "离...远",
+      "ipa": "/lwɛ̃ də/",
+      "visual": "↗",
+      "hint": "loin 是远，发 /lwɛ̃/。"
     },
     {
       "id": "vocab-17",
       "type": "vocabulary",
       "front": "à droite de",
-      "back": "在...右边"
+      "back": "在...右边",
+      "ipa": "/a dʁwat də/",
+      "visual": "→",
+      "hint": "droite 是右边，记右箭头。"
     },
     {
       "id": "vocab-18",
       "type": "vocabulary",
       "front": "à la campagne",
-      "back": "在乡下"
+      "back": "在乡下",
+      "ipa": "/a la kɑ̃paɲ/",
+      "visual": "▵",
+      "hint": "campagne 是乡下，想象田野。"
     },
     {
       "id": "vocab-19",
       "type": "vocabulary",
       "front": "en centre-ville",
-      "back": "在市中心"
+      "back": "在市中心",
+      "ipa": "/ɑ̃ sɑ̃tʁ vil/",
+      "visual": "◎",
+      "hint": "centre-ville 是市中心，想象城市中心点。"
     },
     {
       "id": "vocab-20",
       "type": "vocabulary",
       "front": "se déplacer",
-      "back": "移动，出行"
+      "back": "移动，出行",
+      "ipa": "/sə deplase/",
+      "visual": "⇢",
+      "hint": "se déplacer 是移动/出行，想象人从 A 到 B。"
     },
     {
       "id": "vocab-21",
       "type": "vocabulary",
       "front": "prendre le métro",
-      "back": "坐地铁"
+      "back": "坐地铁",
+      "ipa": "/pʁɑ̃dʁ lə metʁo/",
+      "visual": "▱",
+      "hint": "prendre le métro 是坐地铁，métro 重音在最后。"
     },
     {
       "id": "vocab-22",
       "type": "vocabulary",
       "front": "prendre le bus",
-      "back": "坐公交"
+      "back": "坐公交",
+      "ipa": "/pʁɑ̃dʁ lə bys/",
+      "visual": "▰",
+      "hint": "bus 的 u 是圆唇 /y/，不要读成英语 bus。"
     },
     {
       "id": "vocab-23",
       "type": "vocabulary",
       "front": "prendre le train",
-      "back": "坐火车"
+      "back": "坐火车",
+      "ipa": "/pʁɑ̃dʁ lə tʁɛ̃/",
+      "visual": "▭",
+      "hint": "train 结尾是鼻化音 /ɛ̃/。"
     },
     {
       "id": "vocab-24",
       "type": "vocabulary",
       "front": "marcher",
-      "back": "步行"
+      "back": "步行",
+      "ipa": "/maʁʃe/",
+      "visual": "⇥",
+      "hint": "marcher 是走路，/ʃ/ 像 sh。"
     },
     {
       "id": "vocab-25",
       "type": "vocabulary",
       "front": "aller",
-      "back": "去"
+      "back": "去",
+      "ipa": "/ale/",
+      "visual": "→",
+      "hint": "aller 是去，常用于 futur proche。"
     },
     {
       "id": "vocab-26",
       "type": "vocabulary",
       "front": "venir",
-      "back": "来"
+      "back": "来",
+      "ipa": "/vəniʁ/",
+      "visual": "←",
+      "hint": "venir 是来，结尾 /ʁ/ 不要读英语 r。"
     },
     {
       "id": "vocab-27",
       "type": "vocabulary",
       "front": "rouler",
-      "back": "行驶，滚动"
+      "back": "行驶，滚动",
+      "ipa": "/ʁule/",
+      "visual": "○",
+      "hint": "rouler 是滚动/行驶，想象车轮。"
     },
     {
       "id": "vocab-28",
       "type": "vocabulary",
       "front": "voler",
-      "back": "飞"
+      "back": "飞",
+      "ipa": "/vɔle/",
+      "visual": "△",
+      "hint": "voler 是飞，想象向上飞。"
     },
     {
       "id": "vocab-29",
       "type": "vocabulary",
       "front": "monter dans le métro",
-      "back": "上地铁"
+      "back": "上地铁",
+      "ipa": "/mɔ̃te dɑ̃ lə metʁo/",
+      "visual": "↥",
+      "hint": "monter 是上车，dans 表示进入里面。"
     },
     {
       "id": "vocab-30",
       "type": "vocabulary",
       "front": "descendre du métro",
-      "back": "下地铁"
+      "back": "下地铁",
+      "ipa": "/desɑ̃dʁ dy metʁo/",
+      "visual": "↧",
+      "hint": "descendre 是下车，du = de + le。"
     },
     {
       "id": "vocab-31",
       "type": "vocabulary",
       "front": "changer de ligne",
-      "back": "换线"
+      "back": "换线",
+      "ipa": "/ʃɑ̃ʒe də liɲ/",
+      "visual": "⇆",
+      "hint": "changer 是换，ligne 是线路。"
     },
     {
       "id": "vocab-32",
       "type": "vocabulary",
       "front": "sortir de la station",
-      "back": "出地铁站"
+      "back": "出地铁站",
+      "ipa": "/sɔʁtiʁ də la stasjɔ̃/",
+      "visual": "↱",
+      "hint": "sortir 是出来，station 是车站。"
     },
     {
       "id": "vocab-33",
       "type": "vocabulary",
       "front": "une ligne de métro",
-      "back": "地铁线路"
+      "back": "地铁线路",
+      "ipa": "/yn liɲ də metʁo/",
+      "visual": "═",
+      "hint": "ligne 是线，想象地铁线路。"
     },
     {
       "id": "vocab-34",
       "type": "vocabulary",
       "front": "une station",
-      "back": "车站"
+      "back": "车站",
+      "ipa": "/yn stasjɔ̃/",
+      "visual": "□",
+      "hint": "station 是站，结尾是鼻化 /jɔ̃/。"
     },
     {
       "id": "vocab-35",
       "type": "vocabulary",
       "front": "une destination",
-      "back": "目的地"
+      "back": "目的地",
+      "ipa": "/yn dɛstinasjɔ̃/",
+      "visual": "◎",
+      "hint": "destination 是目的地。"
     },
     {
       "id": "vocab-36",
       "type": "vocabulary",
       "front": "le prochain arrêt",
-      "back": "下一站"
+      "back": "下一站",
+      "ipa": "/lə pʁɔʃɛ̃n‿aʁɛ/",
+      "visual": "■",
+      "hint": "prochain arrêt 是下一站。"
     },
     {
       "id": "vocab-37",
       "type": "vocabulary",
       "front": "voyager",
-      "back": "旅行"
+      "back": "旅行",
+      "ipa": "/vwajaʒe/",
+      "visual": "✈",
+      "hint": "voyager 是旅行，/wa/ 开头。"
     },
     {
       "id": "vocab-38",
       "type": "vocabulary",
       "front": "visiter",
-      "back": "参观，游览"
+      "back": "参观，游览",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "visiter：参观，游览"
     },
     {
       "id": "vocab-39",
       "type": "vocabulary",
       "front": "s'amuser",
-      "back": "玩得开心"
+      "back": "玩得开心",
+      "ipa": "/samyze/",
+      "visual": "☆",
+      "hint": "s'amuser 是玩得开心。"
     },
     {
       "id": "vocab-40",
       "type": "vocabulary",
       "front": "jouer",
-      "back": "玩，进行游戏/运动"
+      "back": "玩，进行游戏/运动",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "jouer：玩，进行游戏/运动"
     },
     {
       "id": "vocab-41",
       "type": "vocabulary",
       "front": "un lieu touristique",
-      "back": "旅游景点"
+      "back": "旅游景点",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "un lieu touristique：旅游景点"
     },
     {
       "id": "vocab-42",
       "type": "vocabulary",
       "front": "rester à l'hôtel",
-      "back": "待在酒店"
+      "back": "待在酒店",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "rester à l'hôtel：待在酒店"
     },
     {
       "id": "vocab-43",
       "type": "vocabulary",
       "front": "jouer aux jeux vidéo",
-      "back": "玩电子游戏"
+      "back": "玩电子游戏",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "jouer aux jeux vidéo：玩电子游戏"
     },
     {
       "id": "vocab-44",
       "type": "vocabulary",
       "front": "jouer au football",
-      "back": "踢足球"
+      "back": "踢足球",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "jouer au football：踢足球"
     },
     {
       "id": "vocab-45",
       "type": "vocabulary",
       "front": "à l'extérieur",
-      "back": "在外面，户外"
+      "back": "在外面，户外",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "à l'extérieur：在外面，户外"
     },
     {
       "id": "vocab-46",
       "type": "vocabulary",
       "front": "avec mes amis",
-      "back": "和我的朋友们"
+      "back": "和我的朋友们",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "avec mes amis：和我的朋友们"
     },
     {
       "id": "vocab-47",
       "type": "vocabulary",
       "front": "indispensable",
-      "back": "必不可少的"
+      "back": "必不可少的",
+      "ipa": "",
+      "visual": "◇",
+      "hint": "indispensable：必不可少的"
     },
     {
       "id": "oral-48",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'habite dans un appartement. Il est petit mais pratique.",
       "back": "你住什么样的房子？",
       "prompt": "Quel logement avez-vous ?",
+      "teacher": "Quel logement avez-vous ?",
+      "student": "J'habite dans un appartement. Il est petit mais pratique.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-49",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Il y a quatre pièces dans l'habitation de mes parents.",
       "back": "你父母家有几个房间？",
       "prompt": "Combien de pièces il y a dans l'habitation de vos parents ?",
+      "teacher": "Combien de pièces il y a dans l'habitation de vos parents ?",
+      "student": "Il y a quatre pièces dans l'habitation de mes parents.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-50",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je préfère ma chambre parce qu'elle est calme.",
       "back": "在父母家你最喜欢哪个房间？",
       "prompt": "Quelle pièce préférez-vous chez vos parents ?",
+      "teacher": "Quelle pièce préférez-vous chez vos parents ?",
+      "student": "Je préfère ma chambre parce qu'elle est calme.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-51",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "La fenêtre est en face de mon bureau.",
       "back": "你房间的窗户在哪里？",
       "prompt": "Où est la fenêtre dans votre chambre ?",
+      "teacher": "Où est la fenêtre dans votre chambre ?",
+      "student": "La fenêtre est en face de mon bureau.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-52",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "À côté de mon habitation, il y a un café et une station de métro.",
       "back": "你住处旁边有什么？",
       "prompt": "Qu'est-ce qu'il y a à côté de votre habitation ?",
+      "teacher": "Qu'est-ce qu'il y a à côté de votre habitation ?",
+      "student": "À côté de mon habitation, il y a un café et une station de métro.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-53",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "L'université est loin de mon habitation.",
       "back": "什么地方离你的住处远？",
       "prompt": "Qu'est-ce qui est loin de votre habitation ?",
+      "teacher": "Qu'est-ce qui est loin de votre habitation ?",
+      "student": "L'université est loin de mon habitation.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-54",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je préfère vivre en ville parce que c'est pratique.",
       "back": "你更喜欢住在城市还是乡下？",
       "prompt": "Préférez-vous vivre en ville ou à la campagne ?",
+      "teacher": "Préférez-vous vivre en ville ou à la campagne ?",
+      "student": "Je préfère vivre en ville parce que c'est pratique.",
       "chapter": "Habitation et localisation"
     },
     {
       "id": "oral-55",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Dans le futur, je veux habiter à Séoul, dans un appartement en centre-ville.",
       "back": "你未来想住在哪里？",
       "prompt": "Où voulez-vous habiter dans le futur ?",
+      "teacher": "Où voulez-vous habiter dans le futur ?",
+      "student": "Dans le futur, je veux habiter à Séoul, dans un appartement en centre-ville.",
       "chapter": "Habitation et localisation"
     },
     {
@@ -1315,66 +1613,82 @@ export const courseData = {
     },
     {
       "id": "oral-65",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je prends souvent le métro parce que c'est rapide.",
       "back": "你在首尔出行经常坐什么交通工具？",
       "prompt": "Quel transport prenez-vous souvent pour vous déplacer dans Séoul ?",
+      "teacher": "Quel transport prenez-vous souvent pour vous déplacer dans Séoul ?",
+      "student": "Je prends souvent le métro parce que c'est rapide.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-66",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je n'utilise jamais le taxi parce que c'est cher.",
       "back": "你从来不用什么交通工具？",
       "prompt": "Quel transport n'utilisez-vous jamais ?",
+      "teacher": "Quel transport n'utilisez-vous jamais ?",
+      "student": "Je n'utilise jamais le taxi parce que c'est cher.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-67",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'aime me déplacer à pied pour aller au café.",
       "back": "你喜欢步行去哪里？",
       "prompt": "Vous aimez vous déplacer à pied pour aller où ?",
+      "teacher": "Vous aimez vous déplacer à pied pour aller où ?",
+      "student": "J'aime me déplacer à pied pour aller au café.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-68",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Non, parce qu'il y a trop de monde.",
       "back": "你喜欢周末来首尔市中心吗？",
       "prompt": "Aimez-vous venir dans le centre de Séoul le week-end ?",
+      "teacher": "Aimez-vous venir dans le centre de Séoul le week-end ?",
+      "student": "Non, parce qu'il y a trop de monde.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-69",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Ça prend environ une heure.",
       "back": "从大学到你父母家要多久？",
       "prompt": "Ça prend combien de temps pour aller chez vos parents de l'université ?",
+      "teacher": "Ça prend combien de temps pour aller chez vos parents de l'université ?",
+      "student": "Ça prend environ une heure.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-70",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Ça prend dix minutes à pied.",
       "back": "从你家到地铁站要多久？",
       "prompt": "De chez vous, ça prend combien de temps pour aller à la station de métro ?",
+      "teacher": "De chez vous, ça prend combien de temps pour aller à la station de métro ?",
+      "student": "Ça prend dix minutes à pied.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-71",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'utilise souvent la ligne 2.",
       "back": "你经常用哪条地铁线？",
       "prompt": "Quelle ligne de métro utilisez-vous souvent ?",
+      "teacher": "Quelle ligne de métro utilisez-vous souvent ?",
+      "student": "J'utilise souvent la ligne 2.",
       "chapter": "Se déplacer"
     },
     {
       "id": "oral-72",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'utilise le taxi quand je suis en retard ou quand je suis fatigué(e).",
       "back": "什么情况下你会坐出租车？",
       "prompt": "Dans quelle condition utilisez-vous le taxi ?",
+      "teacher": "Dans quelle condition utilisez-vous le taxi ?",
+      "student": "J'utilise le taxi quand je suis en retard ou quand je suis fatigué(e).",
       "chapter": "Se déplacer"
     },
     {
@@ -1463,58 +1777,72 @@ export const courseData = {
     },
     {
       "id": "oral-85",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Oui, ce soir, je vais voir mes amis.",
       "back": "今天晚上你会见朋友吗？",
       "prompt": "Ce soir, allez-vous voir des amis ?",
+      "teacher": "Ce soir, allez-vous voir des amis ?",
+      "student": "Oui, ce soir, je vais voir mes amis.",
       "chapter": "Futur proche"
     },
     {
       "id": "oral-86",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Après les examens, je vais me reposer et regarder un film.",
       "back": "考试之后你打算做什么？",
       "prompt": "Après les examens, qu'est-ce que vous allez faire ?",
+      "teacher": "Après les examens, qu'est-ce que vous allez faire ?",
+      "student": "Après les examens, je vais me reposer et regarder un film.",
       "chapter": "Futur proche"
     },
     {
       "id": "oral-87",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "L'été, je vais aller à Busan.",
       "back": "夏天你打算去哪里？",
       "prompt": "L'été, où allez-vous aller ?",
+      "teacher": "L'été, où allez-vous aller ?",
+      "student": "L'été, je vais aller à Busan.",
       "chapter": "Futur proche"
     },
     {
       "id": "oral-88",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "L'été, je ne vais pas étudier beaucoup.",
       "back": "夏天你不打算做什么？",
       "prompt": "L'été, qu'est-ce que vous n'allez pas faire ?",
+      "teacher": "L'été, qu'est-ce que vous n'allez pas faire ?",
+      "student": "L'été, je ne vais pas étudier beaucoup.",
       "chapter": "Futur proche"
     },
     {
       "id": "oral-89",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Si je suis riche, je vais voyager partout dans le monde.",
       "back": "如果你很有钱，你打算做什么？",
       "prompt": "Si vous êtes riche, qu'est-ce que vous allez faire ?",
+      "teacher": "Si vous êtes riche, qu'est-ce que vous allez faire ?",
+      "student": "Si je suis riche, je vais voyager partout dans le monde.",
       "chapter": "Futur proche"
     },
     {
       "id": "oral-90",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Après l'université, je vais chercher un travail.",
       "back": "大学毕业后你打算做什么？",
       "prompt": "Après l'université, qu'est-ce que vous allez faire ?",
+      "teacher": "Après l'université, qu'est-ce que vous allez faire ?",
+      "student": "Après l'université, je vais chercher un travail.",
       "chapter": "Futur proche"
     },
     {
       "id": "oral-91",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Oui, parce que c'est pratique.",
       "back": "未来你会留在首尔吗？",
       "prompt": "Dans le futur, allez-vous rester à Séoul ?",
+      "teacher": "Dans le futur, allez-vous rester à Séoul ?",
+      "student": "Oui, parce que c'est pratique.",
       "chapter": "Futur proche"
     },
     {
@@ -1554,58 +1882,72 @@ export const courseData = {
     },
     {
       "id": "oral-97",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Hier, j'ai étudié le français et j'ai pris un café.",
       "back": "你昨天做了什么？",
       "prompt": "Qu'est-ce que vous avez fait hier ?",
+      "teacher": "Qu'est-ce que vous avez fait hier ?",
+      "student": "Hier, j'ai étudié le français et j'ai pris un café.",
       "chapter": "Le passé composé"
     },
     {
       "id": "oral-98",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je suis allé(e) au musée il y a deux mois.",
       "back": "你多久以前去过博物馆？",
       "prompt": "Vous êtes allé(e) au musée il y a combien de temps ?",
+      "teacher": "Vous êtes allé(e) au musée il y a combien de temps ?",
+      "student": "Je suis allé(e) au musée il y a deux mois.",
       "chapter": "Le passé composé"
     },
     {
       "id": "oral-99",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Récemment, j'ai mangé avec mes amis.",
       "back": "你最近和朋友做了什么？",
       "prompt": "Qu'est-ce que vous avez fait avec vos amis récemment ?",
+      "teacher": "Qu'est-ce que vous avez fait avec vos amis récemment ?",
+      "student": "Récemment, j'ai mangé avec mes amis.",
       "chapter": "Le passé composé"
     },
     {
       "id": "oral-100",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Oui, j'ai vu un film récemment.",
       "back": "你最近看电影了吗？",
       "prompt": "Avez-vous vu un film récemment ?",
+      "teacher": "Avez-vous vu un film récemment ?",
+      "student": "Oui, j'ai vu un film récemment.",
       "chapter": "Le passé composé"
     },
     {
       "id": "oral-101",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Oui, j'ai bu un café ce matin.",
       "back": "你今天早上喝咖啡了吗？",
       "prompt": "Avez-vous bu un café ce matin ?",
+      "teacher": "Avez-vous bu un café ce matin ?",
+      "student": "Oui, j'ai bu un café ce matin.",
       "chapter": "Le passé composé"
     },
     {
       "id": "oral-102",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Oui, je suis déjà allé(e) au Japon.",
       "back": "你已经去过国外吗？",
       "prompt": "Êtes-vous déjà allé(e) à l'étranger ?",
+      "teacher": "Êtes-vous déjà allé(e) à l'étranger ?",
+      "student": "Oui, je suis déjà allé(e) au Japon.",
       "chapter": "Le passé composé"
     },
     {
       "id": "oral-103",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je n'ai jamais fait de saut en parachute.",
       "back": "你人生中从来没有做过什么？",
       "prompt": "Vous n'avez jamais fait quoi dans la vie ?",
+      "teacher": "Vous n'avez jamais fait quoi dans la vie ?",
+      "student": "Je n'ai jamais fait de saut en parachute.",
       "chapter": "Le passé composé"
     },
     {
@@ -1638,66 +1980,82 @@ export const courseData = {
     },
     {
       "id": "oral-108",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'aime visiter les musées et les lieux touristiques.",
       "back": "你喜欢参观什么？",
       "prompt": "Qu'est-ce que vous aimez visiter ?",
+      "teacher": "Qu'est-ce que vous aimez visiter ?",
+      "student": "J'aime visiter les musées et les lieux touristiques.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-109",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'aime voyager à Busan parce que la mer est belle.",
       "back": "你喜欢在韩国哪里旅行？",
       "prompt": "Où aimez-vous voyager en Corée ?",
+      "teacher": "Où aimez-vous voyager en Corée ?",
+      "student": "J'aime voyager à Busan parce que la mer est belle.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-110",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je préfère voyager avec mes amis.",
       "back": "你一般喜欢和谁旅行？",
       "prompt": "Vous préférez voyager avec qui généralement ?",
+      "teacher": "Vous préférez voyager avec qui généralement ?",
+      "student": "Je préfère voyager avec mes amis.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-111",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "J'aime regarder des films et jouer aux jeux vidéo.",
       "back": "你喜欢做什么来娱乐？",
       "prompt": "Qu'est-ce que vous aimez faire pour vous amuser ?",
+      "teacher": "Qu'est-ce que vous aimez faire pour vous amuser ?",
+      "student": "J'aime regarder des films et jouer aux jeux vidéo.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-112",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Je n'aime pas jouer au football.",
       "back": "你不喜欢玩什么？",
       "prompt": "Vous n'aimez pas jouer à quoi ?",
+      "teacher": "Vous n'aimez pas jouer à quoi ?",
+      "student": "Je n'aime pas jouer au football.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-113",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Pour moi, étudier toute la journée n'est pas amusant.",
       "back": "对你来说什么不好玩？",
       "prompt": "Qu'est-ce qui n'est pas amusant pour vous ?",
+      "teacher": "Qu'est-ce qui n'est pas amusant pour vous ?",
+      "student": "Pour moi, étudier toute la journée n'est pas amusant.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-114",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Le matin, un café est indispensable pour moi.",
       "back": "早上对你来说什么是必不可少的？",
       "prompt": "Le matin, qu'est-ce qui est indispensable pour vous ?",
+      "teacher": "Le matin, qu'est-ce qui est indispensable pour vous ?",
+      "student": "Le matin, un café est indispensable pour moi.",
       "chapter": "Voyager et s'amuser"
     },
     {
       "id": "oral-115",
-      "type": "sentence",
+      "type": "dialogue",
       "front": "Avant de dormir, mon téléphone est indispensable pour moi.",
       "back": "睡前对你来说什么是必不可少的？",
       "prompt": "Avant de dormir, qu'est-ce qui est indispensable pour vous ?",
+      "teacher": "Avant de dormir, qu'est-ce qui est indispensable pour vous ?",
+      "student": "Avant de dormir, mon téléphone est indispensable pour moi.",
       "chapter": "Voyager et s'amuser"
     },
     {
@@ -1780,54 +2138,61 @@ export const courseData = {
     {
       "id": "sentence-127",
       "type": "sentence",
+      "front": "Je préfère vivre en ville parce que c'est pratique.",
+      "back": "我更喜欢住在城市，因为很方便。",
+      "chapter": "期末口语速背句型"
+    },
+    {
+      "id": "sentence-128",
+      "type": "sentence",
       "front": "Je préfère voyager avec mes amis parce que c'est amusant.",
       "back": "我更喜欢和朋友旅行，因为很有趣。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-128",
+      "id": "sentence-129",
       "type": "sentence",
       "front": "Je préfère me déplacer en métro parce que c'est rapide.",
       "back": "我更喜欢坐地铁出行，因为很快。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-129",
+      "id": "sentence-130",
       "type": "sentence",
       "front": "Je n'aime pas prendre le taxi parce que c'est cher.",
       "back": "我不喜欢坐出租车，因为很贵。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-130",
+      "id": "sentence-131",
       "type": "sentence",
       "front": "Je n'aime pas me déplacer quand il y a trop de monde.",
       "back": "人太多的时候，我不喜欢出行。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-131",
+      "id": "sentence-132",
       "type": "sentence",
       "front": "Après les examens, je vais me reposer.",
       "back": "考试后，我打算休息。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-132",
+      "id": "sentence-133",
       "type": "sentence",
       "front": "Dans le futur, je vais chercher un travail.",
       "back": "未来，我打算找工作。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-133",
+      "id": "sentence-134",
       "type": "sentence",
       "front": "Hier, j'ai étudié le français.",
       "back": "昨天，我学习了法语。",
       "chapter": "期末口语速背句型"
     },
     {
-      "id": "sentence-134",
+      "id": "sentence-135",
       "type": "sentence",
       "front": "Je suis déjà allé(e) à l'étranger.",
       "back": "我已经去过国外。",

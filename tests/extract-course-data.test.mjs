@@ -33,8 +33,12 @@ assert.equal(data.chapters[0].title, "Habitation et localisation");
 assert.deepEqual(data.chapters[0].vocabulary[0], {
   french: "une maison",
   chinese: "房子",
+  ipa: "/yn mɛzɔ̃/",
+  visual: "⌂",
+  hint: "想象一栋小房子，maison 就是家/房子。",
 });
 assert.equal(data.chapters[0].exercises[0].answer, "dans");
 assert.equal(data.chapters[0].oralQuestions[0].example, "J'habite dans un appartement.");
 assert.ok(data.reviewCards.some((card) => card.front === "une maison"));
 assert.ok(data.reviewCards.some((card) => card.front === "J'habite dans un appartement."));
+assert.ok(data.reviewCards.some((card) => card.type === "dialogue" && card.teacher === "Quel logement avez-vous ?"));

@@ -26,6 +26,12 @@ export function setSelectedVoiceName(name) {
   cachedVoice = null;
 }
 
+export function getSpeechRate(options = {}) {
+  if (options.extraSlow) return 0.45;
+  if (options.slow) return 0.65;
+  return 0.92;
+}
+
 function getFrenchVoice() {
   if (cachedVoice) return cachedVoice;
   const voices = window.speechSynthesis?.getVoices?.() ?? [];
@@ -45,7 +51,7 @@ export function speakFrench(text, options = {}) {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = "fr-FR";
-  utterance.rate = options.slow ? 0.72 : 0.92;
+  utterance.rate = getSpeechRate(options);
   utterance.pitch = 1;
   const voice = getFrenchVoice();
   if (voice) utterance.voice = voice;

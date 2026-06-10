@@ -206,8 +206,47 @@ nav {
 .vocab-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+}
+
+.vocab-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.vocab-visual,
+.card-visual {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 1px solid #c8d8d5;
+  border-radius: 8px;
+  background: #e9f5f2;
+  color: var(--accent-dark);
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.card-visual {
+  width: 72px;
+  height: 72px;
+  flex-basis: 72px;
+  font-size: 36px;
+}
+
+.ipa {
+  display: block;
+  margin-top: 4px;
+  color: #6b3f0b;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+.ipa.big {
+  margin: 0 0 12px;
+  font-size: 18px;
 }
 
 .vocab-item strong,
@@ -218,8 +257,15 @@ nav {
 
 .vocab-item p,
 .sentence-item p,
-.exercise-item p {
+.exercise-item p,
+.vocab-item small {
   margin: 6px 0 0;
+}
+
+.vocab-item small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .listen-actions,
@@ -239,6 +285,12 @@ nav {
 .icon-button.muted {
   color: var(--warm);
   border-color: #f1c27d;
+}
+
+.icon-button.extra-slow {
+  color: #7c2d12;
+  border-color: #fdba74;
+  background: #fff7ed;
 }
 
 .sentence-list,
@@ -301,6 +353,39 @@ nav {
   font-size: 34px;
 }
 
+.dialogue-card {
+  display: grid;
+  width: min(100%, 620px);
+  gap: 14px;
+  text-align: left;
+}
+
+.dialogue-line {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.dialogue-line span {
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dialogue-line p {
+  margin: 0;
+  font-size: 20px;
+}
+
+.dialogue-line.student {
+  margin-left: 28px;
+  background: #f2faf7;
+}
+
 .card-back {
   display: none;
   margin-top: 18px;
@@ -342,7 +427,17 @@ nav {
     flex-direction: column;
   }
 
+  .vocab-visual {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
   .flashcard h2 {
     font-size: 26px;
+  }
+
+  .dialogue-line.student {
+    margin-left: 0;
   }
 }
