@@ -1,4 +1,4 @@
-import { courseData } from "./data/courseData.js?v=ui-polish";
+import { courseData } from "./data/courseData.js?v=three-sections";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
   getWordStatus,
@@ -14,9 +14,7 @@ const app = document.querySelector("#app");
 const WORD_RE = /[A-Za-zÀ-ÿ]+(?:[-'][A-Za-zÀ-ÿ]+)*'?/g;
 
 let state = {
-  view: "chapter",
-  chapterId: courseData.chapters[0]?.id,
-  studyMode: "words",
+  section: "words",
   onlyWeak: false,
   beginnerMode: true,
   cardIndex: 0,
@@ -58,42 +56,44 @@ function tokenizeFrenchText(text) {
   return tokens;
 }
 
-function currentChapter() {
-  return courseData.chapters.find((item) => item.id === state.chapterId) || courseData.chapters[0];
-}
-
 function normalizeVocabItem(item) {
-  const lemma = item.lemma || item.french || item.front || item.word || "";
-  const key = item.key || lemma.toLowerCase();
+  const lemma = item?.lemma || item?.french || item?.front || item?.word || "";
+  const key = item?.key || lemma.toLowerCase();
   return {
     ...item,
     key,
     lemma,
-    pos: item.pos || "词汇",
-    chinese: item.chinese || item.back || "课程词汇",
-    forms: Array.isArray(item.forms) && item.forms.length ? item.forms : [lemma].filter(Boolean),
-    frequency: item.frequency || 1,
-    example: item.example || "",
+    ipa: item?.ipa || "",
+    pos: item?.pos || "词汇",
+    chinese: item?.chinese || item?.back || "课程词汇",
+    forms: Array.isArray(item?.forms) && item.forms.length ? item.forms : [lemma].filter(Boolean),
+    frequency: item?.frequency || 1,
+    example: item?.example || "",
+    sources: Array.isArray(item?.sources) ? item.sources : item?.source ? [item.source] : [],
   };
 }
 
-function findWord(chapter, rawWord) {
+const allWords = (courseData.sections?.words || []).map(normalizeVocabItem);
+const wordByKey = new Map(allWords.map((word) => [word.key, word]));
+const wordByForm = new Map();
+for (const word of allWords) {
+  wordByForm.set(normalizeWord(word.lemma), word);
+  for (const form of word.forms) wordByForm.set(normalizeWord(form), word);
+}
+
+function findWord(rawWord) {
   const normalized = normalizeWord(rawWord);
-  const key = chapter.wordIndex?.[normalized] || chapter.wordIndex?.[normalized.replace(/s$/, "")] || normalized;
-  const found = chapter.vocabulary.find((word) => {
-    const item = normalizeVocabItem(word);
-    return item.key === key || item.lemma.toLowerCase() === key;
-  });
-  return found ? normalizeVocabItem(found) : null;
+  if (!normalized) return null;
+  return wordByForm.get(normalized) || wordByForm.get(normalized.replace(/s$/, "")) || null;
 }
 
 function wordStatus(word) {
   return getWordStatus(state.wordProgress, normalizeVocabItem(word).key);
 }
 
-function chapterStats(chapter) {
-  const total = chapter.vocabulary.length;
-  const known = chapter.vocabulary.map(normalizeVocabItem).filter((word) => wordStatus(word) === "known").length;
+function globalStats() {
+  const total = allWords.length;
+  const known = allWords.filter((word) => wordStatus(word) === "known").length;
   return { total, known, weak: total - known };
 }
 
@@ -113,20 +113,28 @@ function listenActions(text, label = "播放") {
   return `<div class="listen-actions">${playButton(text, label)}${slowButton(text)}${extraSlowButton(text)}</div>`;
 }
 
+function sectionLabel(section = state.section) {
+  const labels = { words: "单词", grammar: "语法", sentences: "句子", review: "复习" };
+  return labels[section] || "单词";
+}
+
 function renderShell(content) {
   const voices = getVoiceOptions();
   const selectedVoice = getSelectedVoiceName();
-  const chapter = currentChapter();
-  const stats = chapterStats(chapter);
+  const stats = globalStats();
   return `
     <header class="topbar">
       <div>
-        <p class="eyebrow">20课完整学习版</p>
+        <p class="eyebrow">全局学习顺序：单词 → 语法 → 句子</p>
         <h1>${escapeHtml(courseData.title)}</h1>
       </div>
       <div class="top-actions">
-        <button class="${state.view === "chapter" ? "active" : ""}" data-view="chapter">课程</button>
-        <button class="${state.view === "review" ? "active" : ""}" data-view="review">复习</button>
+        ${["words", "grammar", "sentences", "review"]
+          .map(
+            (section) =>
+              `<button class="${state.section === section ? "active" : ""}" data-section="${section}">${sectionLabel(section)}</button>`,
+          )
+          .join("")}
       </div>
     </header>
     <main class="layout">
@@ -152,7 +160,7 @@ function renderShell(content) {
         </section>
         <div class="stat">
           <strong>${stats.total}</strong>
-          <span>本课总词汇</span>
+          <span>总词汇</span>
         </div>
         <div class="stat">
           <strong>${stats.known}</strong>
@@ -163,20 +171,17 @@ function renderShell(content) {
           <span>待学习</span>
         </div>
         <div class="stat">
-          <strong>${courseData.reviewCards.length}</strong>
-          <span>总卡片</span>
+          <strong>${courseData.sections?.sentences?.length || 0}</strong>
+          <span>句子</span>
         </div>
-        <nav>
-          ${courseData.chapters
-            .map(
-              (item) => `
-                <button class="chapter-link ${item.id === state.chapterId ? "active" : ""}" data-chapter="${item.id}">
-                  ${escapeHtml(item.title)}
-                </button>
-              `,
-            )
-            .join("")}
-        </nav>
+        <section class="voice-panel">
+          <strong>现在分类</strong>
+          <p>不再按课时分散。课时只作为来源标签保留，方便你知道单词和句子来自哪里。</p>
+          <div class="side-actions">
+            <button class="${state.onlyWeak ? "active" : ""}" data-toggle-weak>仅复习生词</button>
+            <button class="${state.beginnerMode ? "active" : ""}" data-toggle-beginner>初级模式</button>
+          </div>
+        </section>
       </aside>
       <section class="content">${content}</section>
     </main>
@@ -184,59 +189,43 @@ function renderShell(content) {
   `;
 }
 
-function renderStudyControls(chapter) {
-  const modes = [
-    ["words", "单词"],
-    ["phrases", "短语"],
-    ["sentences", "句子"],
-    ["dialogues", "对话/课文"],
-  ];
+function filteredWords() {
+  if (!state.onlyWeak) return allWords;
+  return allWords.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
+}
+
+function renderWords() {
+  const words = filteredWords();
   return `
-    <div class="study-controls">
-      <div class="mode-tabs">
-        ${modes.map(([key, label]) => `<button class="${state.studyMode === key ? "active" : ""}" data-mode="${key}">${label}</button>`).join("")}
-      </div>
-      <div class="toggles">
-        <button class="${state.onlyWeak ? "active" : ""}" data-toggle-weak>仅复习生词</button>
-        <button class="${state.beginnerMode ? "active" : ""}" data-toggle-beginner>初级模式</button>
-      </div>
-      <p>学习顺序：${chapter.learningPath.join(" -> ")}。句子里的高亮词表示还没掌握，点击可查词。</p>
+    <div class="chapter-header">
+      <p class="eyebrow">Words</p>
+      <h2>单词库</h2>
+      <p>这里是 20 课内容合并后的去重词库。每个单词保留原形、出现词形、音标、词性、中文释义和例句。</p>
     </div>
-  `;
-}
-
-function filteredWords(chapter) {
-  const words = chapter.vocabulary.map(normalizeVocabItem);
-  if (!state.onlyWeak) return words;
-  return words.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
-}
-
-function renderWords(chapter) {
-  const words = filteredWords(chapter);
-  return `
     <section class="panel">
       <div class="section-title">
-        <h2>单词库</h2>
-        <span>${words.length} / ${chapter.vocabulary.length} 个</span>
+        <h2>${state.onlyWeak ? "仅复习生词" : "全部单词"}</h2>
+        <span>${words.length} / ${allWords.length} 个</span>
       </div>
       <div class="vocab-grid dense">
         ${words
           .map((word) => {
-            const normalizedWord = normalizeVocabItem(word);
-            const status = wordStatus(normalizedWord);
+            const status = wordStatus(word);
             return `
               <article class="vocab-item word-card status-${status}">
                 <div class="vocab-copy">
-                  <button class="word-title" data-lookup="${normalizedWord.key}" lang="fr">${escapeHtml(normalizedWord.lemma)}</button>
-                  <span class="meta">${escapeHtml(normalizedWord.pos)} · ${escapeHtml(normalizedWord.forms.join(", "))}</span>
-                  <p>${escapeHtml(normalizedWord.chinese)}</p>
-                  ${normalizedWord.example ? `<small>${renderClickableSentence(normalizedWord.example, chapter)}</small>` : ""}
+                  <button class="word-title" data-lookup="${word.key}" lang="fr">${escapeHtml(word.lemma)}</button>
+                  ${word.ipa ? `<span class="ipa">音标 ${escapeHtml(word.ipa)}</span>` : ""}
+                  <span class="meta">${escapeHtml(word.pos)} · 词形：${escapeHtml(word.forms.join(", "))}</span>
+                  <p>${escapeHtml(word.chinese)}</p>
+                  ${word.example ? `<small>${renderClickableSentence(word.example)}</small>` : ""}
+                  ${word.sources?.length ? `<small>来源：${escapeHtml(word.sources.slice(0, 3).join(" / "))}</small>` : ""}
                 </div>
-                ${listenActions(normalizedWord.lemma)}
+                ${listenActions(word.lemma)}
                 <div class="word-actions">
-                  <button data-word-rate="${normalizedWord.key}:known">认识</button>
-                  <button data-word-rate="${normalizedWord.key}:fuzzy">模糊</button>
-                  <button data-word-rate="${normalizedWord.key}:unknown">不认识</button>
+                  <button data-word-rate="${word.key}:known">认识</button>
+                  <button data-word-rate="${word.key}:fuzzy">模糊</button>
+                  <button data-word-rate="${word.key}:unknown">不认识</button>
                 </div>
               </article>
             `;
@@ -247,22 +236,27 @@ function renderWords(chapter) {
   `;
 }
 
-function renderPhrases(chapter) {
+function renderGrammar() {
+  const grammar = courseData.sections?.grammar || [];
   return `
+    <div class="chapter-header">
+      <p class="eyebrow">Grammar</p>
+      <h2>语法</h2>
+      <p>语法点按全课程合并去重，下面保留来源。先看语法名，再到句子区用真实句子练口语。</p>
+    </div>
     <section class="panel">
       <div class="section-title">
-        <h2>短语/词块</h2>
-        <span>${chapter.phrases.length} 条</span>
+        <h2>全部语法点</h2>
+        <span>${grammar.length} 条</span>
       </div>
-      <div class="sentence-list">
-        ${chapter.phrases
+      <div class="grammar-cards">
+        ${grammar
           .map(
-            (phrase) => `
-              <article class="sentence-item">
-                <div class="sentence-main">
-                  <p lang="fr">${renderClickableSentence(phrase, chapter)}</p>
-                  ${listenActions(phrase, "播放短语")}
-                </div>
+            (item) => `
+              <article class="sentence-item grammar-card">
+                <p class="eyebrow">${escapeHtml(item.source || "课程语法")}</p>
+                <h3>${escapeHtml(item.title)}</h3>
+                <p class="translation">${escapeHtml(item.chinese || "课程语法点，请结合例句学习。")}</p>
               </article>
             `,
           )
@@ -272,35 +266,50 @@ function renderPhrases(chapter) {
   `;
 }
 
-function sentenceUnknownCount(sentence, chapter) {
+function sentenceUnknownCount(sentence) {
   return tokenizeFrenchText(sentence).filter((token) => {
-    const word = findWord(chapter, token);
+    const word = findWord(token);
     return word && wordStatus(word) !== "known";
   }).length;
 }
 
-function renderSentences(chapter) {
-  const sentences = [...chapter.sentences].sort((a, b) => {
-    if (!state.beginnerMode) return 0;
-    return sentenceUnknownCount(a, chapter) - sentenceUnknownCount(b, chapter);
-  });
+function filteredSentences() {
+  let sentences = [...(courseData.sections?.sentences || [])];
+  if (state.beginnerMode) {
+    sentences = sentences.sort((a, b) => sentenceUnknownCount(a.french) - sentenceUnknownCount(b.french));
+  }
+  if (state.onlyWeak) {
+    sentences = sentences.filter((sentence) => sentenceUnknownCount(sentence.french) > 0);
+  }
+  return sentences;
+}
+
+function renderSentences() {
+  const sentences = filteredSentences();
+  const total = courseData.sections?.sentences?.length || 0;
   return `
+    <div class="chapter-header">
+      <p class="eyebrow">Sentences</p>
+      <h2>句子</h2>
+      <p>句子按难度排序。红色是未掌握词，黄色是模糊词；点击任意高亮单词可以看到原形、词性、中文释义和发音。</p>
+    </div>
     <section class="panel">
       <div class="section-title">
-        <h2>句子</h2>
-        <span>${sentences.length} 条</span>
+        <h2>${state.onlyWeak ? "含生词的句子" : "全部句子"}</h2>
+        <span>${sentences.length} / ${total} 条</span>
       </div>
       <div class="sentence-list">
         ${sentences
           .map((sentence) => {
-            const unknown = sentenceUnknownCount(sentence, chapter);
+            const unknown = sentenceUnknownCount(sentence.french);
             return `
               <article class="sentence-item ${unknown ? "has-unknown" : ""}">
                 <div class="sentence-main">
-                  <p lang="fr">${renderClickableSentence(sentence, chapter)}</p>
-                  ${listenActions(sentence, "播放句子")}
+                  <p lang="fr">${renderClickableSentence(sentence.french)}</p>
+                  ${listenActions(sentence.french, "播放句子")}
                 </div>
-                ${unknown ? `<p class="translation">未掌握词：${unknown} 个。点击高亮词查看释义。</p>` : `<p class="translation">初级友好：当前词汇基本已掌握。</p>`}
+                <p class="translation"><strong>中文：</strong>${escapeHtml(sentence.chinese || "暂无中文提示")}</p>
+                <p class="translation">待掌握词：${unknown} 个 · 来源：${escapeHtml(sentence.source || "课程句子")}</p>
               </article>
             `;
           })
@@ -310,80 +319,13 @@ function renderSentences(chapter) {
   `;
 }
 
-function renderDialogues(chapter) {
-  return `
-    <section class="panel">
-      <div class="section-title">
-        <h2>对话/课文</h2>
-        <span>${chapter.dialogues.length} 组</span>
-      </div>
-      <div class="sentence-list">
-        ${
-          chapter.dialogues.length
-            ? chapter.dialogues
-                .map(
-                  (dialogue) => `
-                    <article class="sentence-item dialogue-block">
-                      ${dialogue
-                        .split("\n")
-                        .map((line) => `<p lang="fr">${renderClickableSentence(line, chapter)}</p>`)
-                        .join("")}
-                      ${listenActions(dialogue.replace(/\n/g, " "), "播放对话")}
-                    </article>
-                  `,
-                )
-                .join("")
-            : `<p class="empty">这一课没有识别到完整 A/B 对话，先练句子。</p>`
-        }
-      </div>
-    </section>
-  `;
-}
-
-function renderGrammar(chapter) {
-  if (!chapter.grammar?.length) return "";
-  return `
-    <section class="panel">
-      <div class="section-title">
-        <h2>语法线索</h2>
-        <span>${chapter.grammar.length} 条</span>
-      </div>
-      <ul class="grammar-list">
-        ${chapter.grammar.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-      </ul>
-    </section>
-  `;
-}
-
-function renderChapterView() {
-  const chapter = currentChapter();
-  const body =
-    state.studyMode === "words"
-      ? renderWords(chapter)
-      : state.studyMode === "phrases"
-        ? renderPhrases(chapter)
-        : state.studyMode === "sentences"
-          ? renderSentences(chapter)
-          : renderDialogues(chapter);
-  return renderShell(`
-    <div class="chapter-header">
-      <p class="eyebrow">Cours ${String(chapter.course).padStart(2, "0")}</p>
-      <h2>${escapeHtml(chapter.topic)}</h2>
-      <p>先把本课单词过一遍，再进入短语、句子和对话。Cours12 是复习课，已并入前后课程。</p>
-    </div>
-    ${renderStudyControls(chapter)}
-    ${body}
-    ${renderGrammar(chapter)}
-  `);
-}
-
-function renderClickableSentence(text, chapter) {
+function renderClickableSentence(text) {
   let output = "";
   let lastIndex = 0;
   for (const match of String(text || "").matchAll(WORD_RE)) {
     const raw = match[0];
     output += escapeHtml(String(text).slice(lastIndex, match.index));
-    const word = findWord(chapter, raw);
+    const word = findWord(raw);
     if (word) {
       const status = wordStatus(word);
       output += `<button class="inline-word status-${status}" data-lookup="${word.key}" lang="fr">${escapeHtml(raw)}</button>`;
@@ -397,22 +339,21 @@ function renderClickableSentence(text, chapter) {
 }
 
 function getReviewCards() {
-  const chapter = currentChapter();
-  let cards = courseData.reviewCards.filter((card) => card.chapterId === chapter.id || state.view === "review");
+  let cards = courseData.reviewCards || [];
   if (state.onlyWeak) {
-    cards = cards.filter((card) => {
-      if (!card.wordKey) return false;
-      return isWeakWord(state.wordProgress.words[card.wordKey]);
-    });
+    cards = cards.filter((card) => card.wordKey && isWeakWord(state.wordProgress.words[card.wordKey]));
   }
-  return cards.length ? cards : courseData.reviewCards;
+  return cards.length ? cards : courseData.reviewCards || [];
 }
 
 function renderReviewView() {
   const cards = getReviewCards();
-  const card = cards[state.cardIndex % cards.length];
+  const card = cards[state.cardIndex % Math.max(cards.length, 1)];
+  if (!card) {
+    return renderShell(`<section class="panel"><p class="empty">还没有可复习的卡片。</p></section>`);
+  }
   const progress = state.progress[card.id];
-  return renderShell(`
+  return `
     <div class="review-stage">
       <div class="review-meta">
         <span>${state.cardIndex + 1} / ${cards.length}</span>
@@ -420,10 +361,11 @@ function renderReviewView() {
         <button class="text-button" data-reset-progress>重置进度</button>
       </div>
       <article class="flashcard ${state.cardFlipped ? "flipped" : ""}" data-flip-card>
-        <p class="eyebrow">${cardLabel(card)} ${card.chapter ? `· ${escapeHtml(card.chapter)}` : ""}</p>
+        <p class="eyebrow">${cardLabel(card)} ${card.source ? `· ${escapeHtml(card.source)}` : ""}</p>
         ${renderCardFront(card)}
         <div class="card-back">
           <p>${escapeHtml(card.back)}</p>
+          ${card.ipa ? `<small class="ipa">音标 ${escapeHtml(card.ipa)}</small>` : ""}
           ${card.pos ? `<small>${escapeHtml(card.pos)}</small>` : ""}
           ${card.forms?.length ? `<small>词形：${escapeHtml(card.forms.join(", "))}</small>` : ""}
           ${card.example ? `<small>${escapeHtml(card.example)}</small>` : ""}
@@ -437,57 +379,47 @@ function renderReviewView() {
       </div>
       <p class="review-note">这张卡已练 ${progress?.seen || 0} 次。词汇状态会按间隔复习。</p>
     </div>
-  `);
+  `;
 }
 
 function cardLabel(card) {
   if (card.type === "vocabulary") return "单词";
-  if (card.type === "phrase") return "短语";
-  if (card.type === "dialogue") return "对话";
+  if (card.type === "grammar") return "语法";
   return "句子";
 }
 
 function renderCardFront(card) {
-  if (card.type === "dialogue") {
-    return `
-      <div class="dialogue-card">
-        ${(card.dialogue || card.front)
-          .split("\n")
-          .map((line) => `<div class="dialogue-line"><p lang="fr">${escapeHtml(line)}</p>${listenActions(line)}</div>`)
-          .join("")}
-      </div>
-    `;
-  }
   return `
     <h2 lang="fr">${escapeHtml(card.front)}</h2>
-    ${card.pos ? `<p class="ipa big">${escapeHtml(card.pos)}</p>` : ""}
+    ${card.ipa ? `<p class="ipa big">音标 ${escapeHtml(card.ipa)}</p>` : ""}
+    ${card.pos ? `<p class="meta">${escapeHtml(card.pos)}</p>` : ""}
     <div class="listen-row">${playButton(card.front, "播放卡片")}${slowButton(card.front)}${extraSlowButton(card.front)}</div>
   `;
 }
 
 function renderLookup() {
   if (!state.lookupWordKey) return "";
-  const chapter = currentChapter();
-  const word = chapter.vocabulary.find((item) => item.key === state.lookupWordKey);
-  const normalizedWord = word ? normalizeVocabItem(word) : null;
-  if (!normalizedWord) return "";
-  const status = wordStatus(normalizedWord);
+  const word = wordByKey.get(state.lookupWordKey);
+  if (!word) return "";
+  const status = wordStatus(word);
   return `
     <div class="lookup-backdrop" data-close-lookup>
       <aside class="lookup-popover" role="dialog" aria-modal="true">
         <button class="text-button close" data-close-lookup>关闭</button>
         <p class="eyebrow">点击查词</p>
-        <h2 lang="fr">${escapeHtml(normalizedWord.lemma)}</h2>
-        <p>${escapeHtml(normalizedWord.chinese)}</p>
-        <p><strong>词性：</strong>${escapeHtml(normalizedWord.pos)}</p>
-        <p><strong>出现形式：</strong>${escapeHtml(normalizedWord.forms.join(", "))}</p>
+        <h2 lang="fr">${escapeHtml(word.lemma)}</h2>
+        ${word.ipa ? `<p class="ipa big">音标 ${escapeHtml(word.ipa)}</p>` : ""}
+        <p>${escapeHtml(word.chinese)}</p>
+        <p><strong>词性：</strong>${escapeHtml(word.pos)}</p>
+        <p><strong>原形：</strong>${escapeHtml(word.lemma)}</p>
+        <p><strong>出现形式：</strong>${escapeHtml(word.forms.join(", "))}</p>
         <p><strong>状态：</strong>${status === "known" ? "已掌握" : status === "fuzzy" ? "模糊" : "未掌握"}</p>
-        ${normalizedWord.example ? `<p class="lookup-example">${escapeHtml(normalizedWord.example)}</p>` : ""}
-        ${listenActions(normalizedWord.lemma)}
+        ${word.example ? `<p class="lookup-example">${escapeHtml(word.example)}</p>` : ""}
+        ${listenActions(word.lemma)}
         <div class="word-actions large">
-          <button data-word-rate="${normalizedWord.key}:known">认识</button>
-          <button data-word-rate="${normalizedWord.key}:fuzzy">模糊</button>
-          <button data-word-rate="${normalizedWord.key}:unknown">不认识</button>
+          <button data-word-rate="${word.key}:known">认识</button>
+          <button data-word-rate="${word.key}:fuzzy">模糊</button>
+          <button data-word-rate="${word.key}:unknown">不认识</button>
         </div>
       </aside>
     </div>
@@ -495,7 +427,15 @@ function renderLookup() {
 }
 
 function render() {
-  app.innerHTML = state.view === "review" ? renderReviewView() : renderChapterView();
+  const content =
+    state.section === "review"
+      ? renderReviewView()
+      : state.section === "grammar"
+        ? renderGrammar()
+        : state.section === "sentences"
+          ? renderSentences()
+          : renderWords();
+  app.innerHTML = renderShell(content);
 }
 
 app.addEventListener("click", (event) => {
@@ -505,18 +445,10 @@ app.addEventListener("click", (event) => {
   if (target.dataset.speak) speakFrench(target.dataset.speak);
   if (target.dataset.slow) speakFrench(target.dataset.slow, { slow: true });
   if (target.dataset.extraSlow) speakFrench(target.dataset.extraSlow, { extraSlow: true });
-  if (target.dataset.view) {
-    state.view = target.dataset.view;
-    render();
-  }
-  if (target.dataset.chapter) {
-    state.view = "chapter";
-    state.chapterId = target.dataset.chapter;
+  if (target.dataset.section) {
+    state.section = target.dataset.section;
     state.cardIndex = 0;
-    render();
-  }
-  if (target.dataset.mode) {
-    state.studyMode = target.dataset.mode;
+    state.cardFlipped = false;
     render();
   }
   if (target.dataset.toggleWeak !== undefined) {

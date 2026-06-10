@@ -55,6 +55,45 @@ const VOCAB_ENRICHMENT = new Map(
   ].map(([french, ipa, visual, hint]) => [french, { ipa, visual, hint }]),
 );
 
+const IPA_HINTS = {
+  "être": "/ɛtʁ/",
+  "avoir": "/avwaʁ/",
+  "aller": "/ale/",
+  "faire": "/fɛʁ/",
+  "vouloir": "/vulwaʁ/",
+  "pouvoir": "/puvwaʁ/",
+  "je": "/ʒə/",
+  "tu": "/ty/",
+  "il": "/il/",
+  "elle": "/ɛl/",
+  "nous": "/nu/",
+  "vous": "/vu/",
+  "ils": "/il/",
+  "un": "/œ̃/",
+  "une": "/yn/",
+  "le": "/lə/",
+  "la": "/la/",
+  "les": "/le/",
+  "de": "/də/",
+  "des": "/de/",
+  "du": "/dy/",
+  "à": "/a/",
+  "dans": "/dɑ̃/",
+  "avec": "/avɛk/",
+  "pour": "/puʁ/",
+  "bonjour": "/bɔ̃ʒuʁ/",
+  "café": "/kafe/",
+  "maison": "/mɛzɔ̃/",
+  "métro": "/metʁo/",
+  "français": "/fʁɑ̃sɛ/",
+  "étudiant": "/etydjɑ̃/",
+  "professeur": "/pʁɔfɛsœʁ/",
+  "téléphone": "/telefɔn/",
+  "famille": "/famij/",
+  "paris": "/paʁi/",
+  "séoul": "/seul/",
+};
+
 function enrichVocabularyItem(item) {
   const enrichment = VOCAB_ENRICHMENT.get(item.french);
   if (enrichment) return { ...item, ...enrichment };
@@ -64,6 +103,24 @@ function enrichVocabularyItem(item) {
     visual: "◇",
     hint: `${item.french}：${item.chinese}`,
   };
+}
+
+function simpleIpaHint(word) {
+  const normalized = normalizeWord(word);
+  if (IPA_HINTS[normalized]) return IPA_HINTS[normalized];
+  return `/${normalized
+    .replace(/qu/g, "k")
+    .replace(/ch/g, "ʃ")
+    .replace(/ou/g, "u")
+    .replace(/oi/g, "wa")
+    .replace(/ai|ei|et|er|ez$/g, "e")
+    .replace(/an|en/g, "ɑ̃")
+    .replace(/on/g, "ɔ̃")
+    .replace(/in|ain|ein/g, "ɛ̃")
+    .replace(/ç/g, "s")
+    .replace(/c([eéi])/g, "s$1")
+    .replace(/c/g, "k")
+    .replace(/r/g, "ʁ")}/`;
 }
 
 const BASE_LEXICON = {
@@ -515,9 +572,87 @@ function buildWordEntry(item) {
     form: info.form,
     pos: info.pos,
     chinese: info.chinese,
+    ipa: simpleIpaHint(info.lemma),
     forms: [info.form],
     frequency: item.frequency || 1,
     example: item.example || "",
+  };
+}
+
+function mergeWordEntries(words) {
+  const map = new Map();
+  for (const word of words) {
+    const current =
+      map.get(word.key) || {
+        ...word,
+        forms: [],
+        frequency: 0,
+        sources: [],
+      };
+    current.frequency += word.frequency || 1;
+    for (const form of word.forms || [word.form || word.lemma]) {
+      if (form && !current.forms.includes(form)) current.forms.push(form);
+    }
+    if (word.source && !current.sources.includes(word.source)) current.sources.push(word.source);
+    if (!current.example && word.example) current.example = word.example;
+    map.set(word.key, current);
+  }
+  return [...map.values()].sort((a, b) => b.frequency - a.frequency || a.lemma.localeCompare(b.lemma, "fr"));
+}
+
+function sentenceChineseHint(sentence, wordLookup, source) {
+  const hints = [];
+  for (const token of tokenizeFrenchText(sentence)) {
+    const info = lookupWord(token);
+    const word = wordLookup.get(info.key);
+    if (word && !hints.some((item) => item.key === word.key)) {
+      hints.push({ key: word.key, text: `${word.lemma}=${word.chinese}` });
+    }
+    if (hints.length >= 6) break;
+  }
+  return hints.length ? `词义提示：${hints.map((item) => item.text).join("；")}。来源：${source}` : `来源：${source}`;
+}
+
+function buildGlobalSections(chapters) {
+  const words = mergeWordEntries(
+    chapters.flatMap((chapter) =>
+      chapter.vocabulary.map((word) => ({
+        ...word,
+        source: chapter.title,
+      })),
+    ),
+  );
+  const wordLookup = new Map(words.map((word) => [word.key, word]));
+  const grammarMap = new Map();
+  for (const chapter of chapters) {
+    for (const item of chapter.grammar || []) {
+      if (!grammarMap.has(item)) {
+        grammarMap.set(item, {
+          id: `grammar-${grammarMap.size + 1}`,
+          title: item,
+          chinese: "课程语法点，请结合例句学习。",
+          source: chapter.title,
+        });
+      }
+    }
+  }
+  const sentenceMap = new Map();
+  for (const chapter of chapters) {
+    for (const sentence of chapter.sentences || []) {
+      if (!sentenceMap.has(sentence)) {
+        sentenceMap.set(sentence, {
+          id: `sentence-${sentenceMap.size + 1}`,
+          french: sentence,
+          chinese: sentenceChineseHint(sentence, wordLookup, chapter.title),
+          source: chapter.title,
+        });
+      }
+    }
+  }
+  return {
+    words,
+    grammar: [...grammarMap.values()],
+    sentences: [...sentenceMap.values()],
   };
 }
 
@@ -551,80 +686,64 @@ function makeChapterFromCourse(course, index) {
 }
 
 export function buildCourseDataFromIndex(indexData) {
+  const chapters = (indexData.courses || []).map(makeChapterFromCourse);
+  const sections = buildGlobalSections(chapters);
   const data = {
-    title: "Conversation française · 20课完整学习版",
+    title: "Conversation française · 单词 / 语法 / 句子",
     sourceTitle: "French-Course-20-Lessons",
     missingCourses: indexData.missing || [],
     note: "Cours12 是复习课，内容并入前后课程。",
-    chapters: (indexData.courses || []).map(makeChapterFromCourse),
+    sections,
+    chapters,
     reviewCards: [],
   };
   const seenCards = new Set();
 
-  for (const chapter of data.chapters) {
-    for (const word of chapter.vocabulary) {
+  for (const word of sections.words) {
       addReviewCard(
         data.reviewCards,
         {
-          id: `word-${chapter.id}-${word.key}`,
+          id: `word-${word.key}`,
           type: "vocabulary",
           front: word.lemma,
           back: word.chinese,
           pos: word.pos,
+          ipa: word.ipa,
           forms: word.forms,
           example: word.example,
           wordKey: word.key,
           frequency: word.frequency,
-          chapter: chapter.title,
-          chapterId: chapter.id,
+          sources: word.sources,
         },
         seenCards,
       );
     }
-    for (const phrase of chapter.phrases.slice(0, 80)) {
-      addReviewCard(
-        data.reviewCards,
-        {
-          id: `phrase-${chapter.id}-${data.reviewCards.length + 1}`,
-          type: "phrase",
-          front: phrase,
-          back: "课程短语/词块",
-          chapter: chapter.title,
-          chapterId: chapter.id,
-        },
-        seenCards,
-      );
-    }
-    for (const sentence of chapter.sentences.slice(0, 80)) {
-      addReviewCard(
-        data.reviewCards,
-        {
-          id: `sentence-${chapter.id}-${data.reviewCards.length + 1}`,
-          type: "sentence",
-          front: sentence,
-          back: "课程例句",
-          chapter: chapter.title,
-          chapterId: chapter.id,
-        },
-        seenCards,
-      );
-    }
-    for (const dialogue of chapter.dialogues) {
-      addReviewCard(
-        data.reviewCards,
-        {
-          id: `dialogue-${chapter.id}-${data.reviewCards.length + 1}`,
-          type: "dialogue",
-          front: dialogue.split("\n")[0] || dialogue,
-          back: "课程对话",
-          dialogue,
-          chapter: chapter.title,
-          chapterId: chapter.id,
-        },
-        seenCards,
-      );
-    }
+  for (const grammar of sections.grammar) {
+    addReviewCard(
+      data.reviewCards,
+      {
+        id: grammar.id,
+        type: "grammar",
+        front: grammar.title,
+        back: grammar.chinese,
+        source: grammar.source,
+      },
+      seenCards,
+    );
   }
+  for (const sentence of sections.sentences) {
+      addReviewCard(
+        data.reviewCards,
+        {
+          id: sentence.id,
+          type: "sentence",
+          front: sentence.french,
+          back: sentence.chinese,
+          source: sentence.source,
+        },
+        seenCards,
+      );
+    }
 
   return data;
 }

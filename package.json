@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "extract": "node scripts/extract-course-data.mjs",
-    "test": "node tests/extract-course-data.test.mjs && node tests/speech.test.mjs && node tests/storage.test.mjs",
+    "test": "node tests/extract-course-data.test.mjs && node tests/speech.test.mjs && node tests/storage.test.mjs && node tests/main-render.test.mjs",
     "build": "node scripts/extract-course-data.mjs && node scripts/build.mjs"
   }
 }

@@ -177,6 +177,12 @@ nav {
   line-height: 1.4;
 }
 
+.side-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .chapter-link {
   width: 100%;
   text-align: left;
@@ -536,6 +542,17 @@ nav {
   margin: 0;
   padding-left: 20px;
   color: var(--ink);
+}
+
+.grammar-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.grammar-card h3 {
+  margin: 4px 0 8px;
+  font-size: 19px;
+  line-height: 1.35;
 }
 
 .grammar-list li {

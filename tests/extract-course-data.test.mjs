@@ -71,3 +71,8 @@ assert.equal(fullCourseData.chapters[0].vocabulary.length, 55);
 assert.equal(fullCourseData.chapters[0].grammar.length, 1);
 assert.equal(fullCourseData.chapters[0].learningPath.join(" -> "), "单词 -> 短语 -> 句子 -> 对话/课文");
 assert.ok(fullCourseData.reviewCards.some((card) => card.type === "vocabulary" && card.wordKey === "être"));
+assert.ok(fullCourseData.sections.words.length < 55);
+assert.ok(fullCourseData.sections.words.some((word) => word.lemma === "être" && word.ipa));
+assert.equal(fullCourseData.sections.grammar.length, 1);
+assert.ok(fullCourseData.sections.sentences[0].chinese);
+assert.equal(new Set(fullCourseData.sections.words.map((word) => word.key)).size, fullCourseData.sections.words.length);
