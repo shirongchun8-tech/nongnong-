@@ -1,4 +1,4 @@
-import { courseData } from "./data/courseData.js?v=three-sections";
+import { courseData } from "./data/courseData.js?v=visual-sections";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
   getWordStatus,
@@ -124,9 +124,10 @@ function renderShell(content) {
   const stats = globalStats();
   return `
     <header class="topbar">
-      <div>
-        <p class="eyebrow">全局学习顺序：单词 → 语法 → 句子</p>
+      <div class="brand-block">
+        <p class="eyebrow">French Review Studio</p>
         <h1>${escapeHtml(courseData.title)}</h1>
+        <p>先打牢词汇，再看语法，最后进入句子口语训练。</p>
       </div>
       <div class="top-actions">
         ${["words", "grammar", "sentences", "review"]
@@ -137,8 +138,8 @@ function renderShell(content) {
           .join("")}
       </div>
     </header>
-    <main class="layout">
-      <aside class="sidebar">
+    <main class="layout global-layout">
+      <aside class="overview-strip">
         <section class="voice-panel">
           <label for="voice-select">法语声音</label>
           <select id="voice-select" data-voice-select>
@@ -158,25 +159,29 @@ function renderShell(content) {
           </select>
           <p>${voices.length ? "读音奇怪时，换 French/Français voice。" : "请在系统设置里安装 French voice。"}</p>
         </section>
-        <div class="stat">
-          <strong>${stats.total}</strong>
-          <span>总词汇</span>
-        </div>
-        <div class="stat">
-          <strong>${stats.known}</strong>
-          <span>已掌握</span>
-        </div>
-        <div class="stat">
-          <strong>${stats.weak}</strong>
-          <span>待学习</span>
-        </div>
-        <div class="stat">
-          <strong>${courseData.sections?.sentences?.length || 0}</strong>
-          <span>句子</span>
-        </div>
-        <section class="voice-panel">
-          <strong>现在分类</strong>
-          <p>不再按课时分散。课时只作为来源标签保留，方便你知道单词和句子来自哪里。</p>
+        <section class="stats-panel">
+          <div class="stat">
+            <strong>${stats.total}</strong>
+            <span>总词汇</span>
+          </div>
+          <div class="stat">
+            <strong>${stats.known}</strong>
+            <span>已掌握</span>
+          </div>
+          <div class="stat">
+            <strong>${stats.weak}</strong>
+            <span>待学习</span>
+          </div>
+          <div class="stat">
+            <strong>${courseData.sections?.sentences?.length || 0}</strong>
+            <span>句子</span>
+          </div>
+        </section>
+        <section class="control-panel">
+          <div>
+            <strong>当前：${sectionLabel()}</strong>
+            <p>课时只作为来源标签保留，不再分散学习入口。</p>
+          </div>
           <div class="side-actions">
             <button class="${state.onlyWeak ? "active" : ""}" data-toggle-weak>仅复习生词</button>
             <button class="${state.beginnerMode ? "active" : ""}" data-toggle-beginner>初级模式</button>
