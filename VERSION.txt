@@ -1,1 +1,1 @@
-visual-sections
+anki-theme

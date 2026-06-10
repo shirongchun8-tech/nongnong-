@@ -1,4 +1,4 @@
-import { courseData } from "./data/courseData.js?v=visual-sections";
+import { courseData } from "./data/courseData.js?v=anki-theme";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
   getWordStatus,
@@ -12,17 +12,35 @@ import {
 
 const app = document.querySelector("#app");
 const WORD_RE = /[A-Za-zÀ-ÿ]+(?:[-'][A-Za-zÀ-ÿ]+)*'?/g;
+const THEME_KEY = "french-study-tool-theme";
+
+function loadTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
 
 let state = {
   section: "words",
   onlyWeak: false,
   beginnerMode: true,
+  wordIndex: 0,
+  wordFlipped: false,
+  theme: loadTheme(),
   cardIndex: 0,
   cardFlipped: false,
   lookupWordKey: null,
   progress: loadProgress(),
   wordProgress: loadWordProgress(),
 };
+
+function applyTheme() {
+  if (!document.body) return;
+  document.body.className = document.body.className.replace(/\btheme-(light|dark)\b/g, "").trim();
+  document.body.classList.add(`theme-${state.theme}`);
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -136,6 +154,7 @@ function renderShell(content) {
               `<button class="${state.section === section ? "active" : ""}" data-section="${section}">${sectionLabel(section)}</button>`,
           )
           .join("")}
+        <button data-toggle-theme>${state.theme === "dark" ? "浅色" : "深色"}</button>
       </div>
     </header>
     <main class="layout global-layout">
@@ -201,41 +220,54 @@ function filteredWords() {
 
 function renderWords() {
   const words = filteredWords();
+  const word = words[state.wordIndex % Math.max(words.length, 1)];
+  if (!word) {
+    return `
+      <div class="chapter-header">
+        <p class="eyebrow">Words</p>
+        <h2>单词库</h2>
+        <p>当前筛选下没有单词。关闭“仅复习生词”可以回到完整词库。</p>
+      </div>
+    `;
+  }
+  const status = wordStatus(word);
   return `
     <div class="chapter-header">
       <p class="eyebrow">Words</p>
       <h2>单词库</h2>
-      <p>这里是 20 课内容合并后的去重词库。每个单词保留原形、出现词形、音标、词性、中文释义和例句。</p>
+      <p>翻页背词模式：先听和读单词，再点“显示答案”看中文、词性、词形和例句。</p>
     </div>
-    <section class="panel">
+    <section class="panel word-study-panel">
       <div class="section-title">
-        <h2>${state.onlyWeak ? "仅复习生词" : "全部单词"}</h2>
-        <span>${words.length} / ${allWords.length} 个</span>
+        <h2>${state.onlyWeak ? "仅复习生词" : "翻页背词"}</h2>
+        <span>${(state.wordIndex % words.length) + 1} / ${words.length} 个</span>
       </div>
-      <div class="vocab-grid dense">
-        ${words
-          .map((word) => {
-            const status = wordStatus(word);
-            return `
-              <article class="vocab-item word-card status-${status}">
-                <div class="vocab-copy">
-                  <button class="word-title" data-lookup="${word.key}" lang="fr">${escapeHtml(word.lemma)}</button>
-                  ${word.ipa ? `<span class="ipa">音标 ${escapeHtml(word.ipa)}</span>` : ""}
-                  <span class="meta">${escapeHtml(word.pos)} · 词形：${escapeHtml(word.forms.join(", "))}</span>
-                  <p>${escapeHtml(word.chinese)}</p>
-                  ${word.example ? `<small>${renderClickableSentence(word.example)}</small>` : ""}
-                  ${word.sources?.length ? `<small>来源：${escapeHtml(word.sources.slice(0, 3).join(" / "))}</small>` : ""}
-                </div>
-                ${listenActions(word.lemma)}
-                <div class="word-actions">
-                  <button data-word-rate="${word.key}:known">认识</button>
-                  <button data-word-rate="${word.key}:fuzzy">模糊</button>
-                  <button data-word-rate="${word.key}:unknown">不认识</button>
-                </div>
-              </article>
-            `;
-          })
-          .join("")}
+      <article class="study-card status-${status}">
+        <div class="card-progress">
+          <span>${sectionLabel()} · ${status === "known" ? "已掌握" : status === "fuzzy" ? "模糊" : "未掌握"}</span>
+          <button class="text-button" data-lookup="${word.key}">查词详情</button>
+        </div>
+        <div class="study-card-face">
+          <h3 lang="fr">${escapeHtml(word.lemma)}</h3>
+          ${word.ipa ? `<p class="ipa big">音标 ${escapeHtml(word.ipa)}</p>` : ""}
+          ${listenActions(word.lemma, "播放单词")}
+        </div>
+        <div class="study-card-back ${state.wordFlipped ? "visible" : ""}">
+          <p class="answer-main">${escapeHtml(word.chinese)}</p>
+          <p class="meta">${escapeHtml(word.pos)} · 词形：${escapeHtml(word.forms.join(", "))}</p>
+          ${word.example ? `<p class="lookup-example">${renderClickableSentence(word.example)}</p>` : ""}
+          ${word.sources?.length ? `<p class="translation">来源：${escapeHtml(word.sources.slice(0, 3).join(" / "))}</p>` : ""}
+        </div>
+      </article>
+      <div class="word-deck-actions">
+        <button data-word-prev>上一张</button>
+        <button class="primary-action" data-flip-word>${state.wordFlipped ? "隐藏答案" : "显示答案"}</button>
+        <button data-word-next>下一张</button>
+      </div>
+      <div class="word-actions deck-rate">
+        <button data-word-rate="${word.key}:unknown">不认识</button>
+        <button data-word-rate="${word.key}:fuzzy">模糊</button>
+        <button data-word-rate="${word.key}:known">认识</button>
       </div>
     </section>
   `;
@@ -432,6 +464,7 @@ function renderLookup() {
 }
 
 function render() {
+  applyTheme();
   const content =
     state.section === "review"
       ? renderReviewView()
@@ -454,6 +487,12 @@ app.addEventListener("click", (event) => {
     state.section = target.dataset.section;
     state.cardIndex = 0;
     state.cardFlipped = false;
+    state.wordFlipped = false;
+    render();
+  }
+  if (target.dataset.toggleTheme !== undefined) {
+    state.theme = state.theme === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, state.theme);
     render();
   }
   if (target.dataset.toggleWeak !== undefined) {
@@ -477,9 +516,30 @@ app.addEventListener("click", (event) => {
     state.cardFlipped = !state.cardFlipped;
     render();
   }
+  if (target.dataset.flipWord !== undefined) {
+    state.wordFlipped = !state.wordFlipped;
+    render();
+  }
+  if (target.dataset.wordPrev !== undefined) {
+    const words = filteredWords();
+    state.wordIndex = (state.wordIndex - 1 + words.length) % words.length;
+    state.wordFlipped = false;
+    render();
+  }
+  if (target.dataset.wordNext !== undefined) {
+    const words = filteredWords();
+    state.wordIndex = (state.wordIndex + 1) % words.length;
+    state.wordFlipped = false;
+    render();
+  }
   if (target.dataset.wordRate) {
     const [wordKey, rating] = target.dataset.wordRate.split(":");
     state.wordProgress = saveWordProgress(wordKey, rating);
+    if (state.section === "words") {
+      const words = filteredWords();
+      state.wordIndex = (state.wordIndex + 1) % Math.max(words.length, 1);
+      state.wordFlipped = false;
+    }
     render();
   }
   if (target.dataset.rate) {
