@@ -1,1 +1,1 @@
-anki-theme
+anki-translation

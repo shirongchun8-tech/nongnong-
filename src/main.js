@@ -1,4 +1,4 @@
-import { courseData } from "./data/courseData.js?v=anki-theme";
+import { courseData } from "./data/courseData.js?v=anki-translation";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
   getWordStatus,
@@ -28,6 +28,10 @@ let state = {
   beginnerMode: true,
   wordIndex: 0,
   wordFlipped: false,
+  grammarIndex: 0,
+  grammarFlipped: false,
+  sentenceIndex: 0,
+  sentenceFlipped: false,
   theme: loadTheme(),
   cardIndex: 0,
   cardFlipped: false,
@@ -83,7 +87,7 @@ function normalizeVocabItem(item) {
     lemma,
     ipa: item?.ipa || "",
     pos: item?.pos || "词汇",
-    chinese: item?.chinese || item?.back || "课程词汇",
+    chinese: item?.chinese || item?.back || "词汇",
     forms: Array.isArray(item?.forms) && item.forms.length ? item.forms : [lemma].filter(Boolean),
     frequency: item?.frequency || 1,
     example: item?.example || "",
@@ -275,29 +279,42 @@ function renderWords() {
 
 function renderGrammar() {
   const grammar = courseData.sections?.grammar || [];
+  const item = grammar[state.grammarIndex % Math.max(grammar.length, 1)];
+  if (!item) {
+    return `
+      <div class="chapter-header">
+        <p class="eyebrow">Grammar</p>
+        <h2>语法</h2>
+        <p>还没有语法卡片。</p>
+      </div>
+    `;
+  }
   return `
     <div class="chapter-header">
       <p class="eyebrow">Grammar</p>
       <h2>语法</h2>
-      <p>语法点按全课程合并去重，下面保留来源。先看语法名，再到句子区用真实句子练口语。</p>
+      <p>翻页背语法：先看法语语法点，再显示中文解释和用法。</p>
     </div>
-    <section class="panel">
+    <section class="panel word-study-panel">
       <div class="section-title">
-        <h2>全部语法点</h2>
-        <span>${grammar.length} 条</span>
+        <h2>语法卡片</h2>
+        <span>${(state.grammarIndex % grammar.length) + 1} / ${grammar.length} 条</span>
       </div>
-      <div class="grammar-cards">
-        ${grammar
-          .map(
-            (item) => `
-              <article class="sentence-item grammar-card">
-                <p class="eyebrow">${escapeHtml(item.source || "课程语法")}</p>
-                <h3>${escapeHtml(item.title)}</h3>
-                <p class="translation">${escapeHtml(item.chinese || "课程语法点，请结合例句学习。")}</p>
-              </article>
-            `,
-          )
-          .join("")}
+      <article class="study-card grammar-deck-card">
+        <div class="card-progress">
+          <span>语法 · ${escapeHtml(item.source || "课件")}</span>
+        </div>
+        <div class="study-card-face">
+          <h3 lang="fr">${escapeHtml(item.title)}</h3>
+        </div>
+        <div class="study-card-back ${state.grammarFlipped ? "visible" : ""}">
+          <p class="answer-main">${escapeHtml(item.chinese || "请结合例句理解这个语法点。")}</p>
+        </div>
+      </article>
+      <div class="word-deck-actions">
+        <button data-grammar-prev>上一条</button>
+        <button class="primary-action" data-flip-grammar>${state.grammarFlipped ? "隐藏答案" : "显示答案"}</button>
+        <button data-grammar-next>下一条</button>
       </div>
     </section>
   `;
@@ -324,33 +341,44 @@ function filteredSentences() {
 function renderSentences() {
   const sentences = filteredSentences();
   const total = courseData.sections?.sentences?.length || 0;
+  const sentence = sentences[state.sentenceIndex % Math.max(sentences.length, 1)];
+  if (!sentence) {
+    return `
+      <div class="chapter-header">
+        <p class="eyebrow">Sentences</p>
+        <h2>句子</h2>
+        <p>当前筛选下没有句子。关闭“仅复习生词”可以回到完整句子库。</p>
+      </div>
+    `;
+  }
+  const unknown = sentenceUnknownCount(sentence.french);
   return `
     <div class="chapter-header">
       <p class="eyebrow">Sentences</p>
       <h2>句子</h2>
-      <p>句子按难度排序。红色是未掌握词，黄色是模糊词；点击任意高亮单词可以看到原形、词性、中文释义和发音。</p>
+      <p>翻页练句子：先听法语并尝试理解，再显示中文翻译。高亮词可以点击查词。</p>
     </div>
-    <section class="panel">
+    <section class="panel word-study-panel">
       <div class="section-title">
-        <h2>${state.onlyWeak ? "含生词的句子" : "全部句子"}</h2>
-        <span>${sentences.length} / ${total} 条</span>
+        <h2>${state.onlyWeak ? "含生词的句子" : "句子卡片"}</h2>
+        <span>${(state.sentenceIndex % sentences.length) + 1} / ${sentences.length} 条</span>
       </div>
-      <div class="sentence-list">
-        ${sentences
-          .map((sentence) => {
-            const unknown = sentenceUnknownCount(sentence.french);
-            return `
-              <article class="sentence-item ${unknown ? "has-unknown" : ""}">
-                <div class="sentence-main">
-                  <p lang="fr">${renderClickableSentence(sentence.french)}</p>
-                  ${listenActions(sentence.french, "播放句子")}
-                </div>
-                <p class="translation"><strong>中文：</strong>${escapeHtml(sentence.chinese || "暂无中文提示")}</p>
-                <p class="translation">待掌握词：${unknown} 个 · 来源：${escapeHtml(sentence.source || "课程句子")}</p>
-              </article>
-            `;
-          })
-          .join("")}
+      <article class="study-card sentence-deck-card ${unknown ? "has-unknown" : ""}">
+        <div class="card-progress">
+          <span>句子 · 待掌握词 ${unknown} 个 · ${escapeHtml(sentence.source || "课件")}</span>
+        </div>
+        <div class="study-card-face sentence-face">
+          <p lang="fr">${renderClickableSentence(sentence.french)}</p>
+          ${listenActions(sentence.french, "播放句子")}
+        </div>
+        <div class="study-card-back ${state.sentenceFlipped ? "visible" : ""}">
+          <p class="answer-main">${escapeHtml(sentence.chinese || "请根据上下文理解。")}</p>
+        </div>
+      </article>
+      <div class="word-deck-actions">
+        <button data-sentence-prev>上一句</button>
+        <button class="primary-action" data-flip-sentence>${state.sentenceFlipped ? "隐藏答案" : "显示答案"}</button>
+        <button data-sentence-next>下一句</button>
       </div>
     </section>
   `;
@@ -488,6 +516,8 @@ app.addEventListener("click", (event) => {
     state.cardIndex = 0;
     state.cardFlipped = false;
     state.wordFlipped = false;
+    state.grammarFlipped = false;
+    state.sentenceFlipped = false;
     render();
   }
   if (target.dataset.toggleTheme !== undefined) {
@@ -498,10 +528,13 @@ app.addEventListener("click", (event) => {
   if (target.dataset.toggleWeak !== undefined) {
     state.onlyWeak = !state.onlyWeak;
     state.cardIndex = 0;
+    state.wordIndex = 0;
+    state.sentenceIndex = 0;
     render();
   }
   if (target.dataset.toggleBeginner !== undefined) {
     state.beginnerMode = !state.beginnerMode;
+    state.sentenceIndex = 0;
     render();
   }
   if (target.dataset.lookup) {
@@ -540,6 +573,38 @@ app.addEventListener("click", (event) => {
       state.wordIndex = (state.wordIndex + 1) % Math.max(words.length, 1);
       state.wordFlipped = false;
     }
+    render();
+  }
+  if (target.dataset.flipGrammar !== undefined) {
+    state.grammarFlipped = !state.grammarFlipped;
+    render();
+  }
+  if (target.dataset.grammarPrev !== undefined) {
+    const items = courseData.sections?.grammar || [];
+    state.grammarIndex = (state.grammarIndex - 1 + items.length) % Math.max(items.length, 1);
+    state.grammarFlipped = false;
+    render();
+  }
+  if (target.dataset.grammarNext !== undefined) {
+    const items = courseData.sections?.grammar || [];
+    state.grammarIndex = (state.grammarIndex + 1) % Math.max(items.length, 1);
+    state.grammarFlipped = false;
+    render();
+  }
+  if (target.dataset.flipSentence !== undefined) {
+    state.sentenceFlipped = !state.sentenceFlipped;
+    render();
+  }
+  if (target.dataset.sentencePrev !== undefined) {
+    const items = filteredSentences();
+    state.sentenceIndex = (state.sentenceIndex - 1 + items.length) % Math.max(items.length, 1);
+    state.sentenceFlipped = false;
+    render();
+  }
+  if (target.dataset.sentenceNext !== undefined) {
+    const items = filteredSentences();
+    state.sentenceIndex = (state.sentenceIndex + 1) % Math.max(items.length, 1);
+    state.sentenceFlipped = false;
     render();
   }
   if (target.dataset.rate) {

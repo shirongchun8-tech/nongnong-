@@ -382,6 +382,180 @@ const BASE_LEXICON = {
   "y": ["y", "代词", "那里"],
 };
 
+Object.assign(BASE_LEXICON, {
+  "un": ["un", "冠词", "一个；某个"],
+  "une": ["un", "冠词", "一个；某个"],
+  "d'": ["de", "介词", "的；从"],
+  "l'": ["le", "冠词", "这个；那个"],
+  "qu'": ["que", "疑问词/连词", "什么；那"],
+  "mon": ["mon", "限定词", "我的"],
+  "ton": ["ton", "限定词", "你的"],
+  "son": ["son", "限定词", "他/她的"],
+  "sa": ["son", "限定词", "他/她的"],
+  "notre": ["notre", "限定词", "我们的"],
+  "nos": ["notre", "限定词", "我们的"],
+  "ceci": ["ceci", "代词", "这个"],
+  "cela": ["cela", "代词", "那个"],
+  "ici": ["ici", "副词", "这里"],
+  "là": ["là", "副词", "那里"],
+  "classe": ["classe", "名词", "班级；教室"],
+  "syllabe": ["syllabe", "名词", "音节"],
+  "syllabes": ["syllabe", "名词", "音节"],
+  "règle": ["règle", "名词", "规则"],
+  "règles": ["règle", "名词", "规则"],
+  "phonétique": ["phonétique", "形容词", "语音的"],
+  "phonétiques": ["phonétique", "形容词", "语音的"],
+  "final": ["final", "形容词", "末尾的"],
+  "finale": ["final", "形容词", "末尾的"],
+  "consonne": ["consonne", "名词", "辅音"],
+  "consonnes": ["consonne", "名词", "辅音"],
+  "voyelle": ["voyelle", "名词", "元音"],
+  "voyelles": ["voyelle", "名词", "元音"],
+  "pluriel": ["pluriel", "名词/形容词", "复数"],
+  "forme": ["forme", "名词", "形式"],
+  "formes": ["forme", "名词", "形式"],
+  "prononce": ["prononcer", "动词", "发音"],
+  "prononcent": ["prononcer", "动词", "发音"],
+  "écoutez": ["écouter", "动词", "听"],
+  "répétez": ["répéter", "动词", "跟读；重复"],
+  "épelez": ["épeler", "动词", "拼写"],
+  "complétez": ["compléter", "动词", "补全"],
+  "faites": ["faire", "动词", "做；进行"],
+  "question": ["question", "名词", "问题"],
+  "questions": ["question", "名词", "问题"],
+  "réponse": ["réponse", "名词", "回答"],
+  "réponses": ["réponse", "名词", "回答"],
+  "dialogue": ["dialogue", "名词", "对话"],
+  "personne": ["personne", "名词", "人"],
+  "personnes": ["personne", "名词", "人"],
+  "partenaire": ["partenaire", "名词", "搭档"],
+  "objet": ["objet", "名词", "物品"],
+  "objets": ["objet", "名词", "物品"],
+  "professeur": ["professeur", "名词", "老师"],
+  "étudiant": ["étudiant", "名词", "学生"],
+  "étudiante": ["étudiant", "名词", "学生"],
+  "étudiants": ["étudiant", "名词", "学生"],
+  "américain": ["américain", "形容词/名词", "美国人；美国的"],
+  "américaine": ["américain", "形容词/名词", "美国人；美国的"],
+  "coréen": ["coréen", "形容词/名词", "韩国人；韩国的"],
+  "coréenne": ["coréen", "形容词/名词", "韩国人；韩国的"],
+  "française": ["français", "形容词/名词", "法国人；法国的；法语"],
+  "françaises": ["français", "形容词/名词", "法国人；法国的；法语"],
+  "chinois": ["chinois", "形容词/名词", "中国人；中国的；中文"],
+  "chinoise": ["chinois", "形容词/名词", "中国人；中国的；中文"],
+  "marie": ["Marie", "专有名词", "玛丽"],
+  "dupont": ["Dupont", "专有名词", "杜邦"],
+  "jolie": ["Jolie", "专有名词", "若莉"],
+  "pierre": ["Pierre", "专有名词", "皮埃尔"],
+  "julien": ["Julien", "专有名词", "朱利安"],
+  "adrien": ["Adrien", "专有名词", "阿德里安"],
+  "hufs": ["HUFS", "专有名词", "韩国外国语大学"],
+  "école": ["école", "名词", "学校"],
+  "new-york": ["New York", "专有名词", "纽约"],
+  "téléphone": ["téléphone", "名词", "电话"],
+  "ordinateur": ["ordinateur", "名词", "电脑"],
+  "journal": ["journal", "名词", "报纸"],
+  "homme": ["homme", "名词", "男人"],
+  "femme": ["femme", "名词", "女人"],
+  "famille": ["famille", "名词", "家庭"],
+  "crayon": ["crayon", "名词", "铅笔"],
+  "gâteau": ["gâteau", "名词", "蛋糕"],
+  "montagne": ["montagne", "名词", "山"],
+  "cadeau": ["cadeau", "名词", "礼物"],
+  "pomme": ["pomme", "名词", "苹果"],
+  "bonbon": ["bonbon", "名词", "糖果"],
+  "bonbons": ["bonbon", "名词", "糖果"],
+  "enfant": ["enfant", "名词", "孩子"],
+  "enfants": ["enfant", "名词", "孩子"],
+  "fleur": ["fleur", "名词", "花"],
+  "fleurs": ["fleur", "名词", "花"],
+  "stylo": ["stylo", "名词", "笔"],
+  "chaise": ["chaise", "名词", "椅子"],
+  "rencontre": ["rencontre", "名词", "见面"],
+  "formelle": ["formel", "形容词", "正式的"],
+  "enchanté": ["enchanté", "形容词", "很高兴认识你"],
+  "prénom": ["prénom", "名词", "名"],
+  "nom": ["nom", "名词", "姓；名字"],
+  "excusez": ["excuser", "动词", "请原谅"],
+  "plaît": ["plaire", "动词", "使喜欢"],
+  "ami": ["ami", "名词", "朋友"],
+  "amis": ["ami", "名词", "朋友"],
+  "plus": ["plus", "副词", "更多；再"],
+  "chaque": ["chaque", "限定词", "每个"],
+  "quitter": ["quitter", "动词", "离开；告别"],
+  "quelqu'un": ["quelqu'un", "代词", "某人"],
+  "travaille": ["travailler", "动词", "工作；学习"],
+  "étudies": ["étudier", "动词", "学习"],
+  "étudie": ["étudier", "动词", "学习"],
+  "téléphonons": ["téléphoner", "动词", "打电话"],
+  "danser": ["danser", "动词", "跳舞"],
+  "nager": ["nager", "动词", "游泳"],
+  "chanter": ["chanter", "动词", "唱歌"],
+  "manges": ["manger", "动词", "吃"],
+  "prend": ["prendre", "动词", "拿；乘坐；吃喝"],
+  "utilise": ["utiliser", "动词", "使用"],
+  "parle": ["parler", "动词", "说；讲"],
+  "viens": ["venir", "动词", "来"],
+  "allé": ["aller", "动词", "去了"],
+  "ont": ["avoir", "动词", "有；已经"],
+  "êtes": ["être", "动词", "是"],
+  "sommes": ["être", "动词", "是"],
+  "m'appelle": ["s'appeler", "动词", "叫做"],
+  "appelle": ["s'appeler", "动词", "叫做"],
+  "m'appelle": ["s'appeler", "动词", "叫做"],
+  "t'appelles": ["s'appeler", "动词", "叫做"],
+  "s'appelle": ["s'appeler", "动词", "叫做"],
+  "aussi": ["aussi", "副词", "也"],
+  "anglais": ["anglais", "名词/形容词", "英语；英国的"],
+  "nationalité": ["nationalité", "名词", "国籍"],
+  "employé": ["employé", "名词", "职员"],
+  "entreprise": ["entreprise", "名词", "公司"],
+  "supermarché": ["supermarché", "名词", "超市"],
+  "rue": ["rue", "名词", "街道"],
+  "lundi": ["lundi", "名词", "星期一"],
+  "jour": ["jour", "名词", "天；日"],
+  "journée": ["journée", "名词", "一天"],
+  "semaine": ["semaine", "名词", "星期"],
+  "week-end": ["week-end", "名词", "周末"],
+  "déjeuner": ["déjeuner", "动词/名词", "午餐；吃午餐"],
+  "dîner": ["dîner", "动词/名词", "晚餐；吃晚餐"],
+  "pizza": ["pizza", "名词", "披萨"],
+  "poisson": ["poisson", "名词", "鱼"],
+  "viande": ["viande", "名词", "肉"],
+  "banane": ["banane", "名词", "香蕉"],
+  "chocolat": ["chocolat", "名词", "巧克力"],
+  "lait": ["lait", "名词", "牛奶"],
+  "crème": ["crème", "名词", "奶油"],
+  "glacée": ["glacé", "形容词", "冰的"],
+  "sucré": ["sucré", "形容词", "甜的"],
+  "cuiller": ["cuiller", "名词", "勺子"],
+  "beaucoup": ["beaucoup", "副词", "很多"],
+  "pendant": ["pendant", "介词", "在……期间"],
+  "depuis": ["depuis", "介词", "自从；以来"],
+  "si": ["si", "连词/副词", "如果；如此"],
+  "sur": ["sur", "介词", "在……上面"],
+  "par": ["par", "介词", "通过；由"],
+  "moins": ["moins", "副词", "较少；减去"],
+  "lieu": ["lieu", "名词", "地点"],
+  "salle": ["salle", "名词", "房间；厅"],
+  "salon": ["salon", "名词", "客厅"],
+  "piscine": ["piscine", "名词", "游泳池"],
+  "port": ["port", "名词", "港口"],
+  "musique": ["musique", "名词", "音乐"],
+  "football": ["football", "名词", "足球"],
+  "cheveux": ["cheveux", "名词", "头发"],
+  "lit": ["lit", "名词", "床"],
+  "quantité": ["quantité", "名词", "数量"],
+  "fois": ["fois", "名词", "次"],
+  "vocabulaire": ["vocabulaire", "名词", "词汇"],
+  "exemple": ["exemple", "名词", "例子"],
+  "exemples": ["exemple", "名词", "例子"],
+  "phrase": ["phrase", "名词", "句子"],
+  "phrases": ["phrase", "名词", "句子"],
+  "verbe": ["verbe", "名词", "动词"],
+  "négation": ["négation", "名词", "否定"],
+});
+
 const TOKEN_RE = /[A-Za-zÀ-ÿ]+(?:[-'][A-Za-zÀ-ÿ]+)*'?/g;
 
 function normalizeWord(word) {
@@ -412,12 +586,11 @@ export function tokenizeFrenchText(text) {
 
 function guessLemma(form) {
   if (BASE_LEXICON[form]) return BASE_LEXICON[form];
-  if (form.endsWith("ez")) return [form.replace(/ez$/, "er"), "动词", `课程中出现的动词：${form}`];
-  if (form.endsWith("ons")) return [form.replace(/ons$/, "er"), "动词", `课程中出现的动词：${form}`];
-  if (form.endsWith("ent")) return [form.replace(/ent$/, "er"), "动词", `课程中出现的动词：${form}`];
-  if (form.endsWith("es")) return [form.replace(/es$/, "e"), "名词/形容词", `课程中出现的词：${form}`];
-  if (form.endsWith("s") && form.length > 3) return [form.slice(0, -1), "名词/形容词", `课程中出现的词：${form}`];
-  return [form, "词汇", `课程中出现的词：${form}`];
+  if (form.endsWith("ez")) return [form.replace(/ez$/, "er"), "动词", `${form}：第二人称复数或礼貌形式的动词变位`];
+  if (form.endsWith("ent")) return [form.replace(/ent$/, "er"), "动词", `${form}：第三人称复数的动词变位`];
+  if (form.endsWith("es")) return [form.replace(/es$/, "e"), "名词/形容词", `${form}：复数或阴性形式`];
+  if (form.endsWith("s") && form.length > 3) return [form.slice(0, -1), "名词/形容词", `${form}：复数或变位形式`];
+  return [form, "词汇", form];
 }
 
 export function lookupWord(form) {
@@ -600,17 +773,293 @@ function mergeWordEntries(words) {
   return [...map.values()].sort((a, b) => b.frequency - a.frequency || a.lemma.localeCompare(b.lemma, "fr"));
 }
 
-function sentenceChineseHint(sentence, wordLookup, source) {
-  const hints = [];
-  for (const token of tokenizeFrenchText(sentence)) {
-    const info = lookupWord(token);
-    const word = wordLookup.get(info.key);
-    if (word && !hints.some((item) => item.key === word.key)) {
-      hints.push({ key: word.key, text: `${word.lemma}=${word.chinese}` });
-    }
-    if (hints.length >= 6) break;
+function normalizeForMatch(text) {
+  return stripMd(String(text || ""))
+    .replace(/[’]/g, "'")
+    .replace(/[“”«»]/g, '"')
+    .replace(/[–—]/g, "-")
+    .replace(/[。！？]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function withoutAccents(text) {
+  return normalizeForMatch(text)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function cleanSentence(text) {
+  return stripMd(String(text || ""))
+    .replace(/^[•→\-]\s*/, "")
+    .replace(/[’]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function firstMeaning(chinese) {
+  return String(chinese || "")
+    .split(/[；;]/)[0]
+    .replace(/^.+?：/, "")
+    .replace(/的$/, "的")
+    .trim();
+}
+
+function translateNameOrPlace(text) {
+  const cleaned = cleanSentence(text)
+    .replace(/^\s*(à|en|dans|de|d'|l')\s+/i, "")
+    .replace(/^\s*(un|une|des|le|la|les|du|de la|de l')\s+/i, "")
+    .replace(/[?!.,;:]+$/g, "")
+    .trim();
+  const normalized = normalizeForMatch(cleaned);
+  const direct = {
+    "séoul": "首尔",
+    "seoul": "首尔",
+    "paris": "巴黎",
+    "new-york": "纽约",
+    "hufs": "韩国外国语大学",
+    "l'université": "大学",
+    "université": "大学",
+    "l'école": "学校",
+    "école": "学校",
+    "classe": "教室/班上",
+    "paul": "保罗",
+    "marie": "玛丽",
+    "pierre": "皮埃尔",
+    "julien": "朱利安",
+    "adrien": "阿德里安",
+    "[first name] [last name]": "名字和姓氏",
+    "[first name]": "名字",
+    "[last name]": "姓氏",
+  };
+  if (direct[normalized]) return direct[normalized];
+  return cleaned || text;
+}
+
+function translateComplement(text) {
+  const cleaned = cleanSentence(text).replace(/[?!.,;:]+$/g, "").trim();
+  if (!cleaned) return "";
+  if (/\[first name\]|\[last name\]/i.test(cleaned)) return translateNameOrPlace(cleaned);
+  const lower = normalizeForMatch(cleaned);
+  const noAccent = withoutAccents(cleaned);
+  const direct = {
+    "francais": "法国人",
+    "francaise": "法国人",
+    "francaises": "法国人",
+    "coreen": "韩国人",
+    "coreenne": "韩国人",
+    "chinois": "中国人",
+    "chinoise": "中国人",
+    "professeur": "老师",
+    "etudiant": "学生",
+    "etudiante": "学生",
+    "en classe": "在教室/班上",
+    "a l'universite": "在大学",
+    "a l'ecole": "在学校",
+  };
+  if (direct[noAccent]) return direct[noAccent];
+  if (/^(à|a|en|dans)\s+/.test(lower)) return `在${translateNameOrPlace(cleaned)}`;
+  const tokens = tokenizeFrenchText(cleaned);
+  if (!tokens.length) return cleaned;
+  const article = tokens[0];
+  const content = tokens.filter((token) => !["le", "la", "les", "l'", "de", "d'", "du", "des", "un", "une"].includes(token));
+  if (content.length === 1) {
+    const info = lookupWord(content[0]);
+    const meaning = firstMeaning(info.chinese);
+    if (article === "un" || article === "une") return `一个${meaning}`;
+    return meaning;
   }
-  return hints.length ? `词义提示：${hints.map((item) => item.text).join("；")}。来源：${source}` : `来源：${source}`;
+  const meanings = content
+    .map((token) => firstMeaning(lookupWord(token).chinese))
+    .filter(Boolean)
+    .filter((value, index, array) => array.indexOf(value) === index);
+  if (!meanings.length) return cleaned;
+  if (article === "un" || article === "une") return `一个${meanings.join("")}`;
+  return meanings.join("");
+}
+
+const EXACT_SENTENCE_TRANSLATIONS = new Map(
+  [
+    ["Division de français", "法语系。"],
+    ["Ecoutez et répétez", "请听并跟读。"],
+    ["Ecoutez et épelez", "请听并拼写。"],
+    ["Combien de syllabes il y a ?", "有几个音节？"],
+    ["Quelques règles phonétiques", "一些语音规则。"],
+    ["Le e final n’existe pas, ex : marche , Antoine", "词尾 e 不发音，例如 marche、Antoine。"],
+    ["Généralement, la consonne finale n’existe pas, ex:", "通常，词尾辅音不发音。"],
+    ["Le pluriel en s ne se prononce pas, ex : étudiants", "复数词尾 s 不发音，例如 étudiants。"],
+    ["Les formes es, et, er, ez, ai se prononcent [e], ex :", "es、et、er、ez、ai 这些形式读作 [e]。"],
+    ["essayer, jouet, jouer, maison", "essayer、jouet、jouer、maison：这些词用于练习 [e] 音。"],
+    ["The forms es, et, er, ez, ai are pronounced [e]", "es、et、er、ez、ai 这些形式读作 [e]。"],
+    ["Le s entre deux voyelles se prononce [z], ex : asiatique", "两个元音之间的 s 读作 [z]，例如 asiatique。"],
+    ["Faites le dialogue à deux personnes", "请两人一组练习对话。"],
+    ["Faites chaque dialogue à deux personnes", "请每段对话都两人一组练习。"],
+    ["Qu’est-ce que c’est ?", "这是什么？"],
+    ["Qu'est-ce que c'est ?", "这是什么？"],
+    ["Qu’est-ce que ce sont ?", "这些是什么？"],
+    ["Qu'est-ce que ce sont ?", "这些是什么？"],
+    ["This is a computer.", "这是一台电脑。"],
+    ["This is a newspaper.", "这是一份报纸。"],
+    ["Ask your partner questions using objects from the classroom.", "请用教室里的物品向同伴提问。"],
+    ["See you later !", "回头见！"],
+    ["Je vous en prie !", "不客气！"],
+    ["À plus tard !", "回头见！"],
+    ["Un café, s’il vous plaît.", "请给我一杯咖啡。"],
+    ["Un café s’il vous plaît.", "请给我一杯咖啡。"],
+    ["B: Épelez s’il vous plaît.", "B：请拼写。"],
+    ["B: Moi, je suis Pierre Jolie.", "B：我呢，我是皮埃尔·若莉。"],
+    ["A: Excusez-moi !", "A：不好意思！"],
+  ].map(([fr, zh]) => [normalizeForMatch(fr), zh]),
+);
+
+function sentenceEnding(text) {
+  return /\?$/.test(text.trim()) ? "？" : /!$/.test(text.trim()) ? "！" : "。";
+}
+
+function translateSentence(sentence) {
+  const raw = cleanSentence(sentence);
+  if (!raw) return "";
+  const exact = EXACT_SENTENCE_TRANSLATIONS.get(normalizeForMatch(raw));
+  if (exact) return exact;
+
+  const speaker = raw.match(/^([AB])\s*:\s*(.+)$/i);
+  if (speaker) return `${speaker[1].toUpperCase()}：${translateSentence(speaker[2])}`;
+
+  const text = raw.replace(/[.!！。]$/g, "").trim();
+  const lower = normalizeForMatch(text);
+  const noAccent = withoutAccents(text);
+  const end = sentenceEnding(raw);
+
+  if (/^oui,?\s+/.test(lower)) return `是的，${translateSentence(text.replace(/^oui,?\s+/i, "")).replace(/。$/, "")}${end}`;
+  if (/^non,?\s+/.test(lower)) return `不，${translateSentence(text.replace(/^non,?\s+/i, "")).replace(/。$/, "")}${end}`;
+  if (/^moi,?\s+/.test(lower)) return `我呢，${translateSentence(text.replace(/^moi,?\s+/i, "")).replace(/。$/, "")}${end}`;
+  if (/s'il vous plait|s'il vous plaît/.test(noAccent)) {
+    const before = text.replace(/,?\s*s'il vous plaît\.?$/i, "").trim();
+    if (before) return `请给我${translateComplement(before)}${end}`;
+    return `请${end}`;
+  }
+  if (/^je vous en prie/.test(noAccent)) return `不客气${end}`;
+  if (/^enchante/.test(noAccent)) return `很高兴认识你${end}`;
+  if (/^excusez-moi/.test(noAccent)) return `不好意思${end}`;
+  if (/^a plus tard/.test(noAccent)) return `回头见${end}`;
+  if (/^quitter quelqu/.test(noAccent)) return `和某人告别。`;
+
+  const subjectMap = {
+    "je": "我",
+    "j'": "我",
+    "tu": "你",
+    "il": "他",
+    "elle": "她",
+    "on": "我们",
+    "nous": "我们",
+    "vous": "您/你们",
+    "ils": "他们",
+    "elles": "她们",
+  };
+  const etrePattern = /^(je|j'|tu|il|elle|on|nous|vous|ils|elles)\s+(suis|es|est|sommes|êtes|etes|sont)\s+(.+)$/i;
+  const etre = lower.match(etrePattern);
+  if (etre) {
+    const subject = subjectMap[etre[1]];
+    const complement = translateComplement(text.replace(new RegExp(`^${etre[1]}\\s+${etre[2]}\\s+`, "i"), ""));
+    if (/^(à|a|en|dans)\s+/i.test(etre[3])) return `${subject}${complement}${end}`;
+    return `${subject}是${complement}${end}`;
+  }
+
+  const cest = lower.match(/^c['’]?est\s+(.+)$/i);
+  if (cest) return `这是${translateComplement(text.replace(/^c['’]?est\s+/i, ""))}${end}`;
+
+  const cesont = lower.match(/^ce\s+sont\s+(.+)$/i);
+  if (cesont) return `这些是${translateComplement(text.replace(/^ce\s+sont\s+/i, ""))}${end}`;
+
+  const name = lower.match(/^(je|j')\s+m['’]?appelle\s+(.+)$/i);
+  if (name) return `我叫${translateNameOrPlace(text.replace(/^(je|j')\s+m['’]?appelle\s+/i, ""))}${end}`;
+
+  const prenom = lower.match(/^mon\s+prénom\s+est\s+(.+)$/i);
+  if (prenom) return `我的名字是${translateNameOrPlace(text.replace(/^mon\s+prénom\s+est\s+/i, ""))}${end}`;
+
+  const aimer = lower.match(/^(je|j'|tu|il|elle|nous|vous|ils|elles)\s+(aime|aimes|aimez|aimons|aiment|adore|adorez|déteste|deteste|détestez|detestez)\s+(.+)$/i);
+  if (aimer) {
+    const verb = aimer[2].startsWith("dé") || aimer[2].startsWith("det") ? "不喜欢" : aimer[2].startsWith("ador") ? "很喜欢" : "喜欢";
+    return `${subjectMap[aimer[1]]}${verb}${translateComplement(text.replace(new RegExp(`^${aimer[1]}\\s+${aimer[2]}\\s+`, "i"), ""))}${end}`;
+  }
+
+  const aller = lower.match(/^(je|j'|tu|il|elle|on|nous|vous|ils|elles)\s+(vais|vas|va|allons|allez|vont)\s+(.+)$/i);
+  if (aller) return `${subjectMap[aller[1]]}要去${translateComplement(text.replace(new RegExp(`^${aller[1]}\\s+${aller[2]}\\s+`, "i"), ""))}${end}`;
+
+  const neg = lower.match(/^(je|j'|tu|il|elle|on|nous|vous|ils|elles)\s+n['e]?\s*(.+?)\s+pas\s*(.*)$/i);
+  if (neg) {
+    const subject = subjectMap[neg[1]];
+    const verb = neg[2];
+    const rest = neg[3]?.trim() || "";
+    if (/^(suis|es|est|sommes|êtes|etes|sont)$/.test(verb)) return `${subject}不是${translateComplement(rest)}${end}`;
+    if (/travaille/.test(verb) && rest) return `${subject}不在${translateNameOrPlace(rest)}工作${end}`;
+    if (/telephone|téléphone|telephonons|téléphonons/.test(verb)) return `${subject}不给${translateNameOrPlace(rest)}打电话${end}`;
+    if (/parle/.test(verb) && /français|francais/.test(rest)) return `${subject}不说法语${end}`;
+    if (/etudie|étudie/.test(verb)) return `${subject}不学习${translateComplement(rest)}${end}`;
+    if (/aime/.test(verb)) return `${subject}不喜欢${translateComplement(rest)}${end}`;
+    return `${subject}不${firstMeaning(lookupWord(verb).chinese)}${rest ? translateComplement(rest) : ""}${end}`;
+  }
+
+  if (/^complétez|^completez/.test(noAccent)) return `请根据要求补全句子${end}`;
+  if (/^faites/.test(noAccent)) return `请完成练习或进行对话${end}`;
+  if (/^combien\s+de/.test(noAccent)) return `多少${translateComplement(text.replace(/^combien\s+de\s+/i, ""))}${end}`;
+  if (/^quel|^quelle|^quels|^quelles/.test(noAccent)) return `关于“${translateComplement(text)}”的提问${end}`;
+  if (/^où|^ou\s/.test(noAccent)) return `在哪里${end}`;
+
+  const translated = tokenizeFrenchText(text)
+    .filter((token) => !["le", "la", "les", "un", "une", "des", "de", "du", "d'", "l'", "à", "a", "et"].includes(token))
+    .map((token) => firstMeaning(lookupWord(token).chinese))
+    .filter(Boolean)
+    .filter((value, index, array) => array.indexOf(value) === index)
+    .slice(0, 8);
+  if (translated.length) return `参考译文：${translated.join("、")}${end}`;
+  return raw;
+}
+
+function translateGrammarTitle(item) {
+  const raw = cleanSentence(item);
+  const lower = normalizeForMatch(raw);
+  const noAccent = withoutAccents(raw);
+  const quoted = raw.match(/[«"]([^»"]+)[»"]/);
+  if (quoted) return `语法示例：${translateSentence(quoted[1])}`;
+  if (/aimer\s*\+\s*verbe infinitif/.test(noAccent)) return "结构：aimer + 动词原形，表示“喜欢做某事”。";
+  if (/adorer\s*\+\s*verbe infinitif/.test(noAccent)) return "结构：adorer + 动词原形，表示“很喜欢做某事”。";
+  if (/detester\s*\+\s*verbe infinitif/.test(noAccent)) return "结构：détester + 动词原形，表示“不喜欢/讨厌做某事”。";
+  if (/trop immediatement apres le verbe/.test(noAccent)) return "副词 trop 通常放在动词后面，表示“太……”。";
+  if (/(negation|negative)/.test(noAccent) && /ne\s*\+\s*verbe\s*\+\s*pas/.test(noAccent)) return "否定形式：ne + 动词 + pas，意思是“不……”。";
+  if (/(negation|negative)/.test(noAccent)) return "否定句：把 ne/n’ 放在动词前，pas 放在动词后。";
+  if (/verbes?\s+en\s+[-–]?er|premier groupe/.test(noAccent)) return "第一组 -ER 规则动词：去掉 -er 后按主语加词尾。";
+  if (/verbe etre|verbe être|to be/.test(lower)) return "动词 être：表示“是/在”，需要按主语变位。";
+  if (/verbe avoir/.test(noAccent)) return "动词 avoir：表示“有/已经”，也用于构成复合过去时。";
+  if (/s['’]?\s*appeler/.test(lower)) return "动词 s’appeler：表示“叫做”，要搭配自反代词 me/te/se/nous/vous/se。";
+  if (/travailler/.test(noAccent)) return "动词 travailler：表示“工作/学习”，属于 -ER 规则动词。";
+  if (/preferer/.test(noAccent)) return "动词 préférer：表示“更喜欢”，相当于 aimer plus。";
+  if (/verbe faire|faire$/.test(noAccent)) return "动词 faire：表示“做/进行”，常用于活动、运动和天气表达。";
+  if (/vouloir/.test(noAccent) && /pouvoir/.test(noAccent)) return "动词 vouloir/pouvoir：vouloir 表示“想要”，pouvoir 表示“能够”。";
+  if (/vouloir/.test(noAccent)) return "动词 vouloir：表示“想要”，礼貌表达可用 je voudrais。";
+  if (/pouvoir/.test(noAccent)) return "动词 pouvoir：表示“能够/可以”。";
+  if (/futur proche/.test(noAccent)) return "最近将来时：aller 的现在时 + 动词原形，表示“马上要/将要做某事”。";
+  if (/passe compose/.test(noAccent)) return "复合过去时：avoir/être 的现在时 + 过去分词，用来表达已经完成的动作。";
+  if (/liaison/.test(noAccent)) return "联诵：前一个词的词尾辅音在后一个元音开头的词前读出来。";
+  if (/prepositions?|prépositions?/.test(lower)) return "介词：表示地点、方向、时间或关系，例如 à、dans、sur、sous、chez。";
+  if (/expression pour|pour$/.test(noAccent)) return "pour 的用法：表示目的、用途或对象，常译为“为了/给/用于”。";
+  if (/verbes? pronominaux|pronom reflechi/.test(noAccent)) return "代词式动词：动词前带自反代词 me/te/se/nous/vous/se，表示动作回到主语自身。";
+  if (/article|partitif|quantite/.test(noAccent)) return "冠词和数量表达：根据名词阴阳性、单复数和数量选择 du/de la/de l’/des 等形式。";
+  if (/conjugaison du verbe\s+(.+)/.test(noAccent)) return `动词 ${raw.replace(/^Conjugaison du verbe\s+/i, "")} 的变位。`;
+  if (/completez|complétez/.test(lower)) return "练习：按提示补全句子。";
+  if (/exercices?|exercice/.test(noAccent)) return "练习：用本节语法完成句子。";
+  return `语法说明：${translateSentence(raw).replace(/^参考译文：/, "")}`;
+}
+
+function isEnglishOnlySentence(sentence) {
+  const text = normalizeForMatch(sentence);
+  if (!text) return true;
+  if (/[àâçéèêëîïôùûüÿœæ]/i.test(text)) return false;
+  if (/^(this is|these are|there is|there are|ask your|the forms|see you|complete with|to be\b|using objects|what is|what are|where is|i am|you are|he is|she is|we are|they are|listen and)/.test(text)) return true;
+  const englishWords = (text.match(/\b(the|this|these|there|is|are|am|your|partner|using|objects|from|classroom|computer|newspaper|phone|later|forms|pronounced|with|complete|movies|movie|theater|what|where|listen|repeat|please)\b/g) || []).length;
+  const frenchSignals = (text.match(/\b(je|tu|il|elle|nous|vous|ils|elles|est|sont|suis|êtes|etes|avoir|être|etre|verbe|faites|complétez|completez|avec|dans|pour|bonjour|merci|oui|non|cafe)\b/g) || []).length;
+  return englishWords > 1 && frenchSignals === 0;
 }
 
 function buildGlobalSections(chapters) {
@@ -622,7 +1071,6 @@ function buildGlobalSections(chapters) {
       })),
     ),
   );
-  const wordLookup = new Map(words.map((word) => [word.key, word]));
   const grammarMap = new Map();
   for (const chapter of chapters) {
     for (const item of chapter.grammar || []) {
@@ -630,7 +1078,7 @@ function buildGlobalSections(chapters) {
         grammarMap.set(item, {
           id: `grammar-${grammarMap.size + 1}`,
           title: item,
-          chinese: "课程语法点，请结合例句学习。",
+          chinese: translateGrammarTitle(item),
           source: chapter.title,
         });
       }
@@ -639,11 +1087,12 @@ function buildGlobalSections(chapters) {
   const sentenceMap = new Map();
   for (const chapter of chapters) {
     for (const sentence of chapter.sentences || []) {
+      if (isEnglishOnlySentence(sentence)) continue;
       if (!sentenceMap.has(sentence)) {
         sentenceMap.set(sentence, {
           id: `sentence-${sentenceMap.size + 1}`,
           french: sentence,
-          chinese: sentenceChineseHint(sentence, wordLookup, chapter.title),
+          chinese: translateSentence(sentence),
           source: chapter.title,
         });
       }

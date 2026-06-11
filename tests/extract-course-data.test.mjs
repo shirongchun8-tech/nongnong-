@@ -60,12 +60,13 @@ const indexData = {
         example: index === 0 ? "Je suis étudiant." : `Je regarde le mot${index}.`,
       })),
       phrases: ["Je suis", "un téléphone"],
-      sentences: ["Je suis étudiant.", "C'est un téléphone."],
+      sentences: ["Je suis étudiant.", "C'est un téléphone.", "This is a phone.", "There are movies in a movie theater."],
       dialogues: ["A: Bonjour !\nB: Bonjour !"],
     },
   ],
 };
 const fullCourseData = buildCourseDataFromIndex(indexData);
+const bannedText = /课程中出现|课程语法点|词义提示|暂无中文|课程例句|课程词汇/;
 assert.equal(fullCourseData.chapters.length, 1);
 assert.equal(fullCourseData.chapters[0].vocabulary.length, 55);
 assert.equal(fullCourseData.chapters[0].grammar.length, 1);
@@ -75,4 +76,9 @@ assert.ok(fullCourseData.sections.words.length < 55);
 assert.ok(fullCourseData.sections.words.some((word) => word.lemma === "être" && word.ipa));
 assert.equal(fullCourseData.sections.grammar.length, 1);
 assert.ok(fullCourseData.sections.sentences[0].chinese);
+assert.ok(!fullCourseData.sections.sentences.some((sentence) => sentence.french === "This is a phone."));
+assert.ok(!fullCourseData.sections.sentences.some((sentence) => sentence.french === "There are movies in a movie theater."));
 assert.equal(new Set(fullCourseData.sections.words.map((word) => word.key)).size, fullCourseData.sections.words.length);
+assert.doesNotMatch(fullCourseData.sections.grammar[0].chinese, bannedText);
+assert.doesNotMatch(fullCourseData.sections.sentences[0].chinese, bannedText);
+assert.doesNotMatch(fullCourseData.sections.words.map((word) => word.chinese).join("\n"), bannedText);

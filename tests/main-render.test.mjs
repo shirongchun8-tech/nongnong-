@@ -55,6 +55,16 @@ global.document.body.classList.owner = global.document.body;
 
 await import(`../src/main.js?test=${Date.now()}`);
 
+function click(dataset) {
+  const target = {
+    dataset,
+    closest() {
+      return target;
+    },
+  };
+  app.listeners.click({ target });
+}
+
 assert.match(app.innerHTML, /单词库/);
 assert.match(app.innerHTML, /音标/);
 assert.match(app.innerHTML, /总词汇/);
@@ -64,3 +74,13 @@ assert.match(app.innerHTML, /下一张/);
 assert.match(app.innerHTML, /上一张/);
 assert.match(app.innerHTML, /深色/);
 assert.match(global.document.body.className, /theme-light/);
+
+click({ section: "grammar" });
+assert.match(app.innerHTML, /语法/);
+assert.match(app.innerHTML, /显示答案/);
+assert.match(app.innerHTML, /下一条/);
+
+click({ section: "sentences" });
+assert.match(app.innerHTML, /句子/);
+assert.match(app.innerHTML, /显示答案/);
+assert.match(app.innerHTML, /下一句/);
