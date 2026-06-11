@@ -1,4 +1,4 @@
-import { courseData } from "./data/courseData.js?v=anki-translation";
+import { courseData } from "./data/courseData.js?v=auto-pronounce";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
   getWordStatus,
@@ -13,12 +13,23 @@ import {
 const app = document.querySelector("#app");
 const WORD_RE = /[A-Za-zÀ-ÿ]+(?:[-'][A-Za-zÀ-ÿ]+)*'?/g;
 const THEME_KEY = "french-study-tool-theme";
+const AUTO_SPEAK_KEY = "french-study-tool-auto-speak";
+let lastAutoSpokenWordKey = "";
+let autoSpeakTimer = null;
 
 function loadTheme() {
   try {
     return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
   } catch {
     return "light";
+  }
+}
+
+function loadAutoSpeak() {
+  try {
+    return localStorage.getItem(AUTO_SPEAK_KEY) !== "off";
+  } catch {
+    return true;
   }
 }
 
@@ -33,6 +44,7 @@ let state = {
   sentenceIndex: 0,
   sentenceFlipped: false,
   theme: loadTheme(),
+  autoSpeak: loadAutoSpeak(),
   cardIndex: 0,
   cardFlipped: false,
   lookupWordKey: null,
@@ -207,6 +219,7 @@ function renderShell(content) {
           </div>
           <div class="side-actions">
             <button class="${state.onlyWeak ? "active" : ""}" data-toggle-weak>仅复习生词</button>
+            <button class="${state.autoSpeak ? "active" : ""}" data-toggle-auto-speak>自动发音</button>
             <button class="${state.beginnerMode ? "active" : ""}" data-toggle-beginner>初级模式</button>
           </div>
         </section>
@@ -222,9 +235,29 @@ function filteredWords() {
   return allWords.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
 }
 
+function currentWord() {
+  const words = filteredWords();
+  return words[state.wordIndex % Math.max(words.length, 1)] || null;
+}
+
+function scheduleAutoSpeakWord() {
+  if (autoSpeakTimer) {
+    clearTimeout(autoSpeakTimer);
+    autoSpeakTimer = null;
+  }
+  if (!state.autoSpeak || state.section !== "words" || state.lookupWordKey) return;
+  const word = currentWord();
+  if (!word || word.key === lastAutoSpokenWordKey) return;
+  lastAutoSpokenWordKey = word.key;
+  autoSpeakTimer = setTimeout(() => {
+    if (typeof SpeechSynthesisUtterance === "undefined") return;
+    speakFrench(word.lemma);
+  }, 220);
+}
+
 function renderWords() {
   const words = filteredWords();
-  const word = words[state.wordIndex % Math.max(words.length, 1)];
+  const word = currentWord();
   if (!word) {
     return `
       <div class="chapter-header">
@@ -502,6 +535,7 @@ function render() {
           ? renderSentences()
           : renderWords();
   app.innerHTML = renderShell(content);
+  scheduleAutoSpeakWord();
 }
 
 app.addEventListener("click", (event) => {
@@ -523,6 +557,12 @@ app.addEventListener("click", (event) => {
   if (target.dataset.toggleTheme !== undefined) {
     state.theme = state.theme === "dark" ? "light" : "dark";
     localStorage.setItem(THEME_KEY, state.theme);
+    render();
+  }
+  if (target.dataset.toggleAutoSpeak !== undefined) {
+    state.autoSpeak = !state.autoSpeak;
+    localStorage.setItem(AUTO_SPEAK_KEY, state.autoSpeak ? "on" : "off");
+    if (state.autoSpeak) lastAutoSpokenWordKey = "";
     render();
   }
   if (target.dataset.toggleWeak !== undefined) {

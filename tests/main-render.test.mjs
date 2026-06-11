@@ -72,6 +72,7 @@ assert.match(app.innerHTML, /单词 \/ 语法 \/ 句子/);
 assert.match(app.innerHTML, /显示答案/);
 assert.match(app.innerHTML, /下一张/);
 assert.match(app.innerHTML, /上一张/);
+assert.match(app.innerHTML, /自动发音/);
 assert.match(app.innerHTML, /深色/);
 assert.match(global.document.body.className, /theme-light/);
 
