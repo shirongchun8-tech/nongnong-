@@ -11,7 +11,7 @@ import {
 } from "./storage.js";
 
 const app = document.querySelector("#app");
-const WORD_RE = /[A-Za-zÀ-ÿ]+(?:[-'][A-Za-zÀ-ÿ]+)*'?/g;
+const WORD_RE = /[A-Za-zÀ-ÿŒœÆæ]+(?:[-'][A-Za-zÀ-ÿŒœÆæ]+)*'?/g;
 const THEME_KEY = "french-study-tool-theme";
 const AUTO_SPEAK_KEY = "french-study-tool-auto-speak";
 let lastAutoSpokenWordKey = "";
@@ -78,7 +78,7 @@ function tokenizeFrenchText(text) {
   for (const raw of String(text || "").match(WORD_RE) || []) {
     const normalized = normalizeWord(raw);
     if (!normalized) continue;
-    const elision = normalized.match(/^([cdjlmnstqu])'(.+)$/);
+    const elision = normalized.match(/^(qu|[cdjlmnst])'(.+)$/);
     if (elision) {
       tokens.push(`${elision[1]}'`, elision[2]);
     } else if (normalized.includes("-")) {

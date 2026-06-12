@@ -45,6 +45,12 @@ assert.ok(data.reviewCards.some((card) => card.type === "dialogue" && card.teach
 assert.deepEqual(tokenizeFrenchText("J'habite dans un appartement."), ["j'", "habite", "dans", "un", "appartement"]);
 assert.equal(lookupWord("vais").lemma, "aller");
 assert.equal(lookupWord("vais").pos, "动词");
+assert.equal(lookupWord("lampe").chinese, "灯；台灯");
+assert.equal(lookupWord("mange").lemma, "manger");
+assert.equal(lookupWord("mange").chinese, "吃");
+assert.equal(lookupWord("parle").lemma, "parler");
+assert.equal(lookupWord("lieux").lemma, "lieu");
+assert.equal(lookupWord("lieux").chinese, "地点；场所");
 assert.ok(data.chapters[0].wordBank.some((word) => word.lemma === "avoir" && word.forms.includes("avez")));
 assert.ok(data.chapters[0].wordBank.some((word) => word.lemma === "appartement" && word.example.includes("appartement")));
 
