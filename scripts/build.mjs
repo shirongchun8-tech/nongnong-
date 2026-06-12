@@ -21,7 +21,9 @@ function copyRecursive(from, to) {
 
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(DIST, { recursive: true });
-copyRecursive(path.join(ROOT, "index.html"), path.join(DIST, "index.html"));
+for (const entry of fs.readdirSync(ROOT)) {
+  if (entry.endsWith(".html")) copyRecursive(path.join(ROOT, entry), path.join(DIST, entry));
+}
 copyRecursive(path.join(ROOT, "src"), path.join(DIST, "src"));
 fs.writeFileSync(path.join(DIST, ".nojekyll"), "", "utf8");
 console.log(`Built ${path.relative(ROOT, DIST)}`);
