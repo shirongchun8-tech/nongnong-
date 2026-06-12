@@ -12,7 +12,12 @@ import {
   saveLanguageProgress,
   upsertLanguageWord,
 } from "./languageStorage.js";
-import { speakLanguage } from "./languageSpeech.js";
+import {
+  getLanguageVoiceOptions,
+  getSelectedLanguageVoiceName,
+  setSelectedLanguageVoiceName,
+  speakLanguage,
+} from "./languageSpeech.js";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
@@ -53,6 +58,7 @@ function escapeHtml(value) {
 function applyTheme() {
   if (!document.body) return;
   document.body.className = document.body.className.replace(/\btheme-(light|dark)\b/g, "").trim();
+  document.body.classList.add("language-studio");
   document.body.classList.add(`theme-${state.theme}`);
 }
 
@@ -217,6 +223,46 @@ function renderHeader() {
         <button data-toggle-theme>${state.theme === "dark" ? "浅色" : "深色"}</button>
       </div>
     </header>
+  `;
+}
+
+function renderVoicePanel() {
+  const language = currentLanguage();
+  const voices = getLanguageVoiceOptions(state.languageId);
+  const selected = getSelectedLanguageVoiceName(state.languageId);
+  return `
+    <section class="language-voice-panel" aria-label="语音引擎">
+      <label for="language-voice-select">语音引擎</label>
+      <div class="language-voice-row">
+        <select id="language-voice-select" data-language-voice-select>
+          <option value="">自动选择 ${escapeHtml(language.nativeLabel)}</option>
+          ${voices
+            .map(
+              (voice) => `
+                <option value="${escapeHtml(voice.name)}" ${voice.name === selected ? "selected" : ""}>
+                  ${escapeHtml(voice.name)} · ${escapeHtml(voice.lang)}
+                </option>
+              `,
+            )
+            .join("")}
+        </select>
+        <button type="button" data-test-voice>试听</button>
+      </div>
+      <p>${voices.length ? "如果发音不自然，可以在这里换手机或电脑里的语音引擎。" : "当前浏览器没有检测到这个语言的语音包。"}</p>
+    </section>
+  `;
+}
+
+function renderIntroPanel() {
+  return `
+    <section class="chapter-header language-hero">
+      <div>
+        <p class="eyebrow">Words Only</p>
+        <h2>${escapeHtml(currentLanguage().label)}单词</h2>
+        <p>每天先复习到期词，再学新词。学习记录会自动保存在这个浏览器里。</p>
+      </div>
+      ${renderVoicePanel()}
+    </section>
   `;
 }
 
@@ -413,16 +459,14 @@ function render() {
   app.innerHTML = `
     ${renderHeader()}
     <main class="layout language-layout">
-      <section class="chapter-header language-hero">
-        <p class="eyebrow">Words Only</p>
-        <h2>${escapeHtml(currentLanguage().label)}单词</h2>
-        <p>当前只做单词学习：每天先复习到期词，再学新词。你的学习记录会自动保存在这个浏览器里。</p>
-      </section>
       ${state.message ? `<p class="custom-message">${escapeHtml(state.message)}</p>` : ""}
-      ${renderProgressPanel()}
       <div class="language-grid">
         ${renderStudyCard()}
-        ${renderSearchPanel()}
+        <aside class="language-side-flow">
+          ${renderIntroPanel()}
+          ${renderProgressPanel()}
+          ${renderSearchPanel()}
+        </aside>
       </div>
       <div class="custom-grid">
         ${renderWordForm()}
@@ -556,7 +600,19 @@ app.addEventListener("click", (event) => {
     }
     render();
   }
+  if (target.dataset.testVoice !== undefined) {
+    speakLanguage(currentWord()?.term || "hello", state.languageId);
+  }
 });
+
+app.addEventListener("change", (event) => {
+  if (!event.target.matches("[data-language-voice-select]")) return;
+  setSelectedLanguageVoiceName(state.languageId, event.target.value);
+  speakLanguage(currentWord()?.term || "hello", state.languageId);
+  render();
+});
+
+window.addEventListener?.("languageVoicesChanged", render);
 
 app.addEventListener("input", (event) => {
   if (!event.target.matches("[data-language-search]")) return;

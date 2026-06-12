@@ -17,8 +17,14 @@ global.window = {
   addEventListener() {},
   speechSynthesis: {
     getVoices() {
-      return [];
+      return [
+        { name: "Alex", lang: "en-US" },
+        { name: "Yuna", lang: "ko-KR" },
+        { name: "Thomas", lang: "fr-FR" },
+        { name: "Kyoko", lang: "ja-JP" },
+      ];
     },
+    addEventListener() {},
     cancel() {},
     speak() {},
   },
@@ -120,6 +126,9 @@ assert.match(app.innerHTML, /法语/);
 assert.match(app.innerHTML, /日语/);
 assert.match(app.innerHTML, /外语 → 中文/);
 assert.match(app.innerHTML, /搜索单词或中文/);
+assert.match(app.innerHTML, /语音引擎/);
+assert.match(app.innerHTML, /Alex · en-US/);
+assert.match(app.innerHTML, /试听/);
 assert.match(app.innerHTML, /今日复习/);
 assert.match(app.innerHTML, /学新词/);
 assert.match(app.innerHTML, /只看错词/);
