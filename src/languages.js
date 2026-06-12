@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js";
+import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=fluid-voice-redesign";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,13 +11,13 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js";
+} from "./languageStorage.js?v=fluid-voice-redesign";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js";
+} from "./languageSpeech.js?v=fluid-voice-redesign";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
