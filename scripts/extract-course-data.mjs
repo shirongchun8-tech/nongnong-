@@ -1008,6 +1008,14 @@ function isIgnoredWordForm(form) {
   return IGNORED_WORD_FORMS.has(normalizeWord(form));
 }
 
+function inferredWord(form, lemma, pos, reason) {
+  return [lemma, pos, `原词：${form}；原形：${lemma}；说明：${reason}`];
+}
+
+function unknownWord(form) {
+  return [form, "待核对词汇", `原词：${form}；说明：未在基础词典中，可能是专有名词、缩写或 PDF/OCR 断词，请结合原句确认。`];
+}
+
 function guessLemma(form) {
   if (BASE_LEXICON[form]) return BASE_LEXICON[form];
   if (form.endsWith("s") && BASE_LEXICON[form.slice(0, -1)]) return BASE_LEXICON[form.slice(0, -1)];
@@ -1015,11 +1023,11 @@ function guessLemma(form) {
   if (form.endsWith("aux") && BASE_LEXICON[`${form.slice(0, -3)}al`]) return BASE_LEXICON[`${form.slice(0, -3)}al`];
   if (form.endsWith("e") && BASE_LEXICON[`${form}r`]) return BASE_LEXICON[`${form}r`];
   if (form.endsWith("é") && BASE_LEXICON[`${form.slice(0, -1)}er`]) return BASE_LEXICON[`${form.slice(0, -1)}er`];
-  if (form.endsWith("ez")) return [form.replace(/ez$/, "er"), "动词", `${form}：第二人称复数或礼貌形式的动词变位`];
-  if (form.endsWith("ent")) return [form.replace(/ent$/, "er"), "动词", `${form}：第三人称复数的动词变位`];
-  if (form.endsWith("es")) return [form.replace(/es$/, "e"), "名词/形容词", `${form}：复数或阴性形式`];
-  if (form.endsWith("s") && form.length > 3) return [form.slice(0, -1), "名词/形容词", `${form}：复数或变位形式`];
-  return [form, "待核对词汇", "释义待补充"];
+  if (form.endsWith("ez")) return inferredWord(form, form.replace(/ez$/, "er"), "动词", "第二人称复数或礼貌形式的动词变位");
+  if (form.endsWith("ent")) return inferredWord(form, form.replace(/ent$/, "er"), "动词", "第三人称复数现在时变位");
+  if (form.endsWith("es")) return inferredWord(form, form.replace(/es$/, "e"), "名词/形容词", "复数或阴性形式");
+  if (form.endsWith("s") && form.length > 3) return inferredWord(form, form.slice(0, -1), "名词/形容词", "复数形式或固定 s 结尾词，需结合原句确认");
+  return unknownWord(form);
 }
 
 export function lookupWord(form) {
@@ -1222,14 +1230,19 @@ function withoutAccents(text) {
 
 function cleanSentence(text) {
   return stripMd(String(text || ""))
-    .replace(/^[•→\-]\s*/, "")
+    .replace(/^[•→\-–]\s*/, "")
+    .replace(/^[a-z]\)\s*/i, "")
+    .replace(/^\d+[.)]\s*/, "")
     .replace(/[’]/g, "'")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function firstMeaning(chinese) {
-  return String(chinese || "")
+  const text = String(chinese || "");
+  const original = text.match(/^原词：([^；;]+)/);
+  if (original) return original[1].trim();
+  return text
     .split(/[；;]/)[0]
     .replace(/^.+?：/, "")
     .replace(/的$/, "的")
@@ -1453,6 +1466,8 @@ function translateGrammarTitle(item) {
   const noAccent = withoutAccents(raw);
   const quoted = raw.match(/[«"]([^»"]+)[»"]/);
   if (quoted) return `语法示例：${translateSentence(quoted[1])}`;
+  if (/^conjugaison generale/.test(noAccent)) return "一般现在时动词变位总表：按主语人称选择正确的动词词尾。";
+  if (/^conjugaison\s+[a-zà-ÿ-]+/i.test(raw)) return `动词 ${raw.replace(/^Conjugaison\s+/i, "").replace(/\s*\(.+?\)\s*/g, "").trim()} 的变位。`;
   if (/aimer\s*\+\s*verbe infinitif/.test(noAccent)) return "结构：aimer + 动词原形，表示“喜欢做某事”。";
   if (/adorer\s*\+\s*verbe infinitif/.test(noAccent)) return "结构：adorer + 动词原形，表示“很喜欢做某事”。";
   if (/detester\s*\+\s*verbe infinitif/.test(noAccent)) return "结构：détester + 动词原形，表示“不喜欢/讨厌做某事”。";
@@ -1479,7 +1494,7 @@ function translateGrammarTitle(item) {
   if (/conjugaison du verbe\s+(.+)/.test(noAccent)) return `动词 ${raw.replace(/^Conjugaison du verbe\s+/i, "")} 的变位。`;
   if (/completez|complétez/.test(lower)) return "练习：按提示补全句子。";
   if (/exercices?|exercice/.test(noAccent)) return "练习：用本节语法完成句子。";
-  return `语法说明：${translateSentence(raw).replace(/^参考译文：/, "")}`;
+  return `语法说明：请按原文标题复习“${raw}”。`;
 }
 
 function isEnglishOnlySentence(sentence) {
@@ -1490,6 +1505,44 @@ function isEnglishOnlySentence(sentence) {
   const englishWords = (text.match(/\b(the|this|these|there|is|are|am|your|partner|using|objects|from|classroom|computer|newspaper|phone|later|forms|pronounced|with|complete|movies|movie|theater|what|where|listen|repeat|please)\b/g) || []).length;
   const frenchSignals = (text.match(/\b(je|tu|il|elle|nous|vous|ils|elles|est|sont|suis|êtes|etes|avoir|être|etre|verbe|faites|complétez|completez|avec|dans|pour|bonjour|merci|oui|non|cafe)\b/g) || []).length;
   return englishWords > 1 && frenchSignals === 0;
+}
+
+function isNonOralSentence(sentence) {
+  const raw = cleanSentence(sentence);
+  const text = normalizeForMatch(raw);
+  const noAccent = withoutAccents(raw);
+  if (!text || isEnglishOnlySentence(raw)) return true;
+  if (text.length < 2) return true;
+  if (/^\[.+\]$/.test(text)) return true;
+  if (/…|\.{3,}|_{2,}/.test(raw)) return true;
+  if (/\b[a-d]\)\s/i.test(raw)) return true;
+  if (/^[=≠]/.test(text) || /[≠]/.test(raw)) return true;
+  if (/s'il vous$/.test(noAccent)) return true;
+  if (/\[[^\]]+\]/.test(raw)) return true;
+  if (/^(prénom|prenom|statut|langue|ville|activité|activite)\s*[:：]/.test(noAccent)) return true;
+  if (/^(conjugaison|division|correction|rappel|remarque|vocabulaire|compréhension|comprehension|expression|exercice|exercices|présentations|presentations|plan de|départ|depart|arrivée|arrivee|sport favori|nationalité|nationalite|prénom nom|prenom nom|type de relation|manière|maniere|caractères|caracteres|les différents|les differents|négation|negation|article|partitif|quantité|quantite|combien de syllabes)\b/.test(noAccent)) return true;
+  if (/^(écoutez|ecoutez|répétez|repetez|épelez|epelez|complétez|completez|faites|répondez|repondez|reliez|mettez)\b/.test(noAccent)) return true;
+  if (/^(quelques règles|quelques regles|le e final|généralement|generalement|le pluriel|les formes)\b/.test(noAccent)) return true;
+  if (/\b(to speak|present|présent|correction|récapitulation|recapitulation)\b/i.test(raw) && !/[?!]/.test(raw)) return true;
+  if (/^[a-zà-ÿ]+(?:\s*[-–]\s*[a-zà-ÿ]+)+$/i.test(text) && !/\b(je|tu|il|elle|nous|vous|ils|elles|est|sont|suis|êtes|etes|a|ont|vais|vas|va|vont)\b/.test(text)) return true;
+
+  if (/^[ab]\s*:\s+/.test(text)) return false;
+  if (/\b(bonjour|merci|excusez|enchanté|enchante|s'il vous plaît|s'il vous plait|à plus tard|a plus tard|je vous en prie)\b/.test(text)) return false;
+  if (/^(qu['’]?est-ce|est-ce|où|ou\s|quel|quelle|quels|quelles|combien|comment|pourquoi|quand)\b/.test(noAccent)) return false;
+  if (/\b(je|j'|tu|il|elle|on|nous|vous|ils|elles|c'est|ce sont|il y a)\b/.test(text)) return false;
+  if (/\b(est|sont|a|ont|vais|vas|va|vont|aime|aimes|aimez|mange|manges|boit|prends|prend|veux|veut|peux|peut|voudrais|allez|fait|font|habite|étudie|etudie|travaille|parle|joue|regarde)\b/.test(text)) return false;
+  return true;
+}
+
+function isNonGrammarPoint(item) {
+  const raw = cleanSentence(item);
+  const text = normalizeForMatch(raw);
+  const noAccent = withoutAccents(raw);
+  if (!text) return true;
+  if (/^\[.+\]$/.test(text)) return true;
+  if (/^(écoutez|ecoutez|répétez|repetez|épelez|epelez|complétez|completez|faites|répondez|repondez|reliez|mettez|utilisez)\b/.test(noAccent)) return true;
+  if (/^(point de grammaire|grammaire|verbes\s*:?)$/.test(noAccent)) return true;
+  return false;
 }
 
 function buildGlobalSections(chapters) {
@@ -1504,6 +1557,7 @@ function buildGlobalSections(chapters) {
   const grammarMap = new Map();
   for (const chapter of chapters) {
     for (const item of chapter.grammar || []) {
+      if (isNonGrammarPoint(item)) continue;
       if (!grammarMap.has(item)) {
         grammarMap.set(item, {
           id: `grammar-${grammarMap.size + 1}`,
@@ -1517,12 +1571,13 @@ function buildGlobalSections(chapters) {
   const sentenceMap = new Map();
   for (const chapter of chapters) {
     for (const sentence of chapter.sentences || []) {
-      if (isEnglishOnlySentence(sentence)) continue;
-      if (!sentenceMap.has(sentence)) {
-        sentenceMap.set(sentence, {
+      const cleaned = cleanSentence(sentence);
+      if (isNonOralSentence(cleaned)) continue;
+      if (!sentenceMap.has(cleaned)) {
+        sentenceMap.set(cleaned, {
           id: `sentence-${sentenceMap.size + 1}`,
-          french: sentence,
-          chinese: translateSentence(sentence),
+          french: cleaned,
+          chinese: translateSentence(cleaned),
           source: chapter.title,
         });
       }

@@ -51,6 +51,9 @@ assert.equal(lookupWord("mange").chinese, "吃");
 assert.equal(lookupWord("parle").lemma, "parler");
 assert.equal(lookupWord("lieux").lemma, "lieu");
 assert.equal(lookupWord("lieux").chinese, "地点；场所");
+assert.match(lookupWord("glorifiez").chinese, /原词：glorifiez/);
+assert.match(lookupWord("glorifiez").chinese, /原形：glorifier/);
+assert.match(lookupWord("glorifiez").chinese, /第二人称复数或礼貌形式/);
 assert.ok(data.chapters[0].wordBank.some((word) => word.lemma === "avoir" && word.forms.includes("avez")));
 assert.ok(data.chapters[0].wordBank.some((word) => word.lemma === "appartement" && word.example.includes("appartement")));
 
@@ -88,3 +91,34 @@ assert.equal(new Set(fullCourseData.sections.words.map((word) => word.key)).size
 assert.doesNotMatch(fullCourseData.sections.grammar[0].chinese, bannedText);
 assert.doesNotMatch(fullCourseData.sections.sentences[0].chinese, bannedText);
 assert.doesNotMatch(fullCourseData.sections.words.map((word) => word.chinese).join("\n"), bannedText);
+
+const unknownTokenData = buildCourseDataFromIndex({
+  courses: [
+    {
+      course: 2,
+      topic: "Unknown fallback",
+      grammar: ["Expression avec xyzzy", "Conjugaison générale (PRESENT)", "Faites la comparaison en utilisant l’adjectif proposé."],
+      vocabulary: [{ word: "xyzzy", frequency: 1, example: "Je xyzzy." }],
+      phrases: [],
+      sentences: [
+        "Je xyzzy.",
+        "Conjugaison générale (PRESENT)",
+        "Répondez aux questions avec le vocabulaire suivant :",
+        "Qu'est-ce qu'il y a dans … ?",
+        "Tu ..................... de la guitare. [JOUER]",
+        "Prénom & nom : Je suis ………… ……………",
+        "• A: Bonjour !",
+      ],
+      dialogues: [],
+    },
+  ],
+});
+assert.doesNotMatch(JSON.stringify(unknownTokenData), /释义待补充/);
+assert.match(unknownTokenData.sections.words[0].chinese, /原词：xyzzy/);
+assert.ok(!unknownTokenData.sections.sentences.some((sentence) => sentence.french === "Conjugaison générale (PRESENT)"));
+assert.ok(!unknownTokenData.sections.sentences.some((sentence) => sentence.french.startsWith("Répondez aux questions")));
+assert.ok(!unknownTokenData.sections.sentences.some((sentence) => sentence.french.includes("[JOUER]")));
+assert.ok(!unknownTokenData.sections.sentences.some((sentence) => sentence.french.startsWith("Prénom")));
+assert.ok(unknownTokenData.sections.sentences.some((sentence) => sentence.french === "A: Bonjour !"));
+assert.match(unknownTokenData.sections.grammar.find((item) => item.title === "Conjugaison générale (PRESENT)").chinese, /一般现在时动词变位/);
+assert.ok(!unknownTokenData.sections.grammar.some((item) => item.title.startsWith("Faites la comparaison")));
