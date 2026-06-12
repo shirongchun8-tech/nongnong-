@@ -1,10 +1,15 @@
 import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js";
 import {
+  calculateLanguageStats,
   deleteLanguageWord,
   exportLanguageContent,
   importLanguageContent,
+  isLanguageReviewDue,
   loadLanguageContent,
+  loadLanguageProgress,
   normalizeLanguageWord,
+  rateLanguageWord,
+  saveLanguageProgress,
   upsertLanguageWord,
 } from "./languageStorage.js";
 import { speakLanguage } from "./languageSpeech.js";
@@ -20,16 +25,21 @@ function loadTheme() {
   }
 }
 
+const initialProgress = loadLanguageProgress();
+const initialSession = initialProgress.sessions?.active || {};
+
 const state = {
-  languageId: "en",
-  mode: "foreignToZh",
-  cardIndex: 0,
+  languageId: initialSession.languageId || "en",
+  mode: initialSession.mode || "foreignToZh",
+  queue: initialSession.queue || "due",
+  cardIndex: Number(initialSession.cardIndex) || 0,
   flipped: false,
   search: "",
   editingWordId: null,
   message: "",
   theme: loadTheme(),
   customContent: loadLanguageContent(),
+  progress: initialProgress,
 };
 
 function escapeHtml(value) {
@@ -82,6 +92,37 @@ function modeLabel(mode = state.mode) {
   return labels[mode] || labels.foreignToZh;
 }
 
+function queueLabel(queue = state.queue) {
+  const labels = {
+    due: "今日复习",
+    new: "学新词",
+    difficult: "只看错词",
+    all: "全部词库",
+  };
+  return labels[queue] || labels.due;
+}
+
+function ratingLabel(rating) {
+  const labels = { unknown: "不认识", fuzzy: "模糊", known: "认识" };
+  return labels[rating] || "模糊";
+}
+
+function persistSession() {
+  state.progress = saveLanguageProgress({
+    ...state.progress,
+    sessions: {
+      ...(state.progress.sessions || {}),
+      active: {
+        languageId: state.languageId,
+        mode: state.mode,
+        queue: state.queue,
+        cardIndex: state.cardIndex,
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  });
+}
+
 function activeDirection() {
   if (state.mode === "mixed") return state.cardIndex % 2 === 0 ? "foreignToZh" : "zhToForeign";
   return state.mode;
@@ -112,10 +153,35 @@ function searchResults() {
   return allWords().filter((word) => matchesQuery(word, query)).slice(0, 40);
 }
 
-function studyWords() {
+function isNewWord(word) {
+  return !state.progress.cards[word.id];
+}
+
+function isDifficultWord(word) {
+  const record = state.progress.cards[word.id];
+  if (!record) return false;
+  return record.lastRating === "unknown" || record.lastRating === "fuzzy" || (record.fuzzy || 0) + (record.unknown || 0) > (record.known || 0);
+}
+
+function dueWords(words) {
+  return words.filter((word) => isLanguageReviewDue(state.progress.cards[word.id]));
+}
+
+function wordsForQueue() {
   const words = wordsForLanguage();
+  if (state.queue === "new") return words.filter(isNewWord);
+  if (state.queue === "difficult") return words.filter(isDifficultWord);
+  if (state.queue === "all") return words;
+  const due = dueWords(words);
+  if (due.length) return due;
+  const fresh = words.filter(isNewWord);
+  return fresh.length ? fresh : words;
+}
+
+function studyWords() {
+  const words = wordsForQueue();
   const filtered = state.search.trim() ? words.filter((word) => matchesQuery(word, state.search)) : words;
-  return filtered.length ? filtered : words;
+  return filtered.length ? filtered : wordsForLanguage();
 }
 
 function currentWord() {
@@ -191,6 +257,30 @@ function renderSearchResult(word) {
   `;
 }
 
+function renderProgressPanel() {
+  const stats = calculateLanguageStats(wordsForLanguage(), state.progress);
+  return `
+    <section class="panel language-progress-panel">
+      <div class="section-title">
+        <h2>今日任务</h2>
+        <span>${queueLabel()}</span>
+      </div>
+      <div class="language-stats-grid">
+        <div class="language-stat"><strong>${stats.total}</strong><span>总词数</span></div>
+        <div class="language-stat"><strong>${stats.due}</strong><span>今日待复习</span></div>
+        <div class="language-stat"><strong>${stats.newCount}</strong><span>新词</span></div>
+        <div class="language-stat"><strong>${stats.mastered}</strong><span>已掌握</span></div>
+      </div>
+      <div class="mode-tabs language-queue-tabs">
+        ${["due", "new", "difficult", "all"]
+          .map((queue) => `<button class="${state.queue === queue ? "active" : ""}" data-queue="${queue}">${queueLabel(queue)}</button>`)
+          .join("")}
+      </div>
+      <p class="review-note">不认识：10 分钟后再来；模糊：6 小时后再来；连续认识会进入 1 天、3 天、7 天、15 天、30 天的长期复习。</p>
+    </section>
+  `;
+}
+
 function renderStudyCard() {
   const words = studyWords();
   const word = currentWord();
@@ -204,7 +294,7 @@ function renderStudyCard() {
   return `
     <section class="panel word-study-panel language-study-panel">
       <div class="section-title">
-        <h2>${escapeHtml(language.label)} · ${modeLabel()}</h2>
+        <h2>${escapeHtml(language.label)} · ${queueLabel()}</h2>
         <span>${(state.cardIndex % words.length) + 1} / ${words.length}</span>
       </div>
       <div class="mode-tabs language-mode-tabs">
@@ -233,6 +323,11 @@ function renderStudyCard() {
         <button data-prev-word>上一张</button>
         <button class="primary-action" data-flip-word>${state.flipped ? "隐藏答案" : "显示答案"}</button>
         <button data-next-word>下一张</button>
+      </div>
+      <div class="word-actions language-rate-actions">
+        <button data-rate-language="${escapeHtml(word.id)}:unknown">不认识</button>
+        <button data-rate-language="${escapeHtml(word.id)}:fuzzy">模糊</button>
+        <button data-rate-language="${escapeHtml(word.id)}:known">认识</button>
       </div>
     </section>
   `;
@@ -321,9 +416,10 @@ function render() {
       <section class="chapter-header language-hero">
         <p class="eyebrow">Words Only</p>
         <h2>${escapeHtml(currentLanguage().label)}单词</h2>
-        <p>当前只做单词学习：翻译卡片、搜索查词、发音、自己添加和编辑词库。</p>
+        <p>当前只做单词学习：每天先复习到期词，再学新词。你的学习记录会自动保存在这个浏览器里。</p>
       </section>
       ${state.message ? `<p class="custom-message">${escapeHtml(state.message)}</p>` : ""}
+      ${renderProgressPanel()}
       <div class="language-grid">
         ${renderStudyCard()}
         ${renderSearchPanel()}
@@ -351,7 +447,7 @@ function formValue(form, name) {
 }
 
 function downloadContent() {
-  const json = exportLanguageContent(state.customContent);
+  const json = exportLanguageContent(state.customContent, state.progress);
   const blob = new Blob([json], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -377,11 +473,21 @@ app.addEventListener("click", (event) => {
     state.flipped = false;
     state.editingWordId = null;
     state.message = "";
+    persistSession();
     render();
   }
   if (target.dataset.mode) {
     state.mode = target.dataset.mode;
     state.flipped = false;
+    persistSession();
+    render();
+  }
+  if (target.dataset.queue) {
+    state.queue = target.dataset.queue;
+    state.cardIndex = 0;
+    state.flipped = false;
+    state.search = "";
+    persistSession();
     render();
   }
   if (target.dataset.toggleTheme !== undefined) {
@@ -393,16 +499,28 @@ app.addEventListener("click", (event) => {
     const words = studyWords();
     state.cardIndex = (state.cardIndex - 1 + words.length) % Math.max(words.length, 1);
     state.flipped = false;
+    persistSession();
     render();
   }
   if (target.dataset.nextWord !== undefined) {
     const words = studyWords();
     state.cardIndex = (state.cardIndex + 1) % Math.max(words.length, 1);
     state.flipped = false;
+    persistSession();
     render();
   }
   if (target.dataset.flipWord !== undefined) {
     state.flipped = !state.flipped;
+    render();
+  }
+  if (target.dataset.rateLanguage) {
+    const [wordId, rating] = target.dataset.rateLanguage.split(":");
+    state.progress = rateLanguageWord(state.progress, wordId, rating);
+    state.message = `已记录：${ratingLabel(rating)}。`;
+    const words = studyWords();
+    state.cardIndex = words.length ? state.cardIndex % words.length : 0;
+    state.flipped = false;
+    persistSession();
     render();
   }
   if (target.dataset.editWord) {
@@ -431,6 +549,7 @@ app.addEventListener("click", (event) => {
     const textarea = app.querySelector("[data-language-import-text]");
     try {
       state.customContent = importLanguageContent(textarea?.value || "", state.customContent);
+      state.progress = loadLanguageProgress();
       state.message = "导入成功，词库已合并。";
     } catch {
       state.message = "导入失败：请粘贴完整的 JSON 内容。";

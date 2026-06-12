@@ -22,6 +22,47 @@
   margin-bottom: 0;
 }
 
+.language-progress-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.language-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.language-stat {
+  min-height: 86px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+}
+
+.language-stat strong,
+.language-stat span {
+  display: block;
+}
+
+.language-stat strong {
+  color: var(--accent-dark);
+  font-size: 30px;
+  line-height: 1.05;
+}
+
+.language-stat span {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.language-queue-tabs {
+  margin-bottom: 0;
+}
+
 .language-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
@@ -45,6 +86,32 @@
 .language-card .study-card-face h3 {
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.language-rate-actions {
+  margin-top: 12px;
+}
+
+.language-rate-actions button {
+  flex: 1;
+  min-height: 54px;
+  font-weight: 900;
+}
+
+.language-rate-actions button[data-rate-language$=":unknown"] {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  color: var(--danger);
+}
+
+.language-rate-actions button[data-rate-language$=":fuzzy"] {
+  border-color: #f1c27d;
+  color: var(--warm);
+}
+
+.language-rate-actions button[data-rate-language$=":known"] {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  background: var(--accent-soft);
 }
 
 .language-search-panel {
@@ -137,6 +204,10 @@
 }
 
 @media (max-width: 820px) {
+  .language-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .language-result {
     flex-direction: column;
   }
@@ -151,5 +222,9 @@
 
   .language-card {
     min-height: 340px;
+  }
+
+  .language-rate-actions button {
+    flex: 1 1 100%;
   }
 }

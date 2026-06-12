@@ -120,6 +120,17 @@ assert.match(app.innerHTML, /法语/);
 assert.match(app.innerHTML, /日语/);
 assert.match(app.innerHTML, /外语 → 中文/);
 assert.match(app.innerHTML, /搜索单词或中文/);
+assert.match(app.innerHTML, /今日复习/);
+assert.match(app.innerHTML, /学新词/);
+assert.match(app.innerHTML, /只看错词/);
+assert.match(app.innerHTML, /今日待复习/);
+assert.match(app.innerHTML, /不认识/);
+assert.match(app.innerHTML, /模糊/);
+assert.match(app.innerHTML, /认识/);
+
+click({ rateLanguage: "starter-en-0:known" });
+assert.match(storage["multi-language-word-studio-progress"], /starter-en-0/);
+assert.match(app.innerHTML, /已记录：认识/);
 
 click({ language: "ko" });
 assert.match(app.innerHTML, /안녕하세요/);

@@ -14,11 +14,15 @@ global.localStorage = {
 };
 
 import {
+  calculateLanguageStats,
   deleteLanguageWord,
   exportLanguageContent,
   importLanguageContent,
   loadLanguageContent,
+  loadLanguageProgress,
+  rateLanguageWord,
   saveLanguageContent,
+  saveLanguageProgress,
   upsertLanguageWord,
 } from "../src/languageStorage.js";
 
@@ -71,3 +75,37 @@ assert.match(exported, /"term": "水"/);
 const imported = importLanguageContent(exported, { words: [] });
 assert.equal(imported.words[0].term, "水");
 assert.equal(loadLanguageContent().words[0].term, "水");
+
+let progress = saveLanguageProgress({ cards: {}, sessions: {} });
+progress = rateLanguageWord(progress, "starter-en-0", "unknown", new Date("2026-06-12T00:00:00Z"));
+assert.equal(progress.cards["starter-en-0"].status, "learning");
+assert.equal(progress.cards["starter-en-0"].box, 1);
+assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-12T00:10:00.000Z");
+
+progress = rateLanguageWord(progress, "starter-en-0", "fuzzy", new Date("2026-06-12T00:20:00Z"));
+assert.equal(progress.cards["starter-en-0"].status, "learning");
+assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-12T06:20:00.000Z");
+
+progress = rateLanguageWord(progress, "starter-en-0", "known", new Date("2026-06-13T00:00:00Z"));
+assert.equal(progress.cards["starter-en-0"].status, "learning");
+assert.equal(progress.cards["starter-en-0"].box, 2);
+assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-14T00:00:00.000Z");
+
+progress = rateLanguageWord(progress, "starter-en-0", "known", new Date("2026-06-14T00:00:00Z"));
+assert.equal(progress.cards["starter-en-0"].status, "review");
+assert.equal(progress.cards["starter-en-0"].box, 3);
+assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-17T00:00:00.000Z");
+assert.equal(loadLanguageProgress().cards["starter-en-0"].status, "review");
+
+const stats = calculateLanguageStats(
+  [
+    { id: "starter-en-0" },
+    { id: "starter-en-1" },
+  ],
+  progress,
+  new Date("2026-06-18T00:00:00Z"),
+);
+assert.equal(stats.total, 2);
+assert.equal(stats.due, 1);
+assert.equal(stats.newCount, 1);
+assert.equal(stats.mastered, 1);
