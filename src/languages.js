@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=fluid-voice-redesign";
+import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=word-tap-redesign";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,22 +11,24 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=fluid-voice-redesign";
+} from "./languageStorage.js?v=word-tap-redesign";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=fluid-voice-redesign";
+} from "./languageSpeech.js?v=word-tap-redesign";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
 
 function loadTheme() {
   try {
-    return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === "light" || saved === "dark") return saved;
+    return "dark";
   } catch {
-    return "light";
+    return "dark";
   }
 }
 
@@ -35,17 +37,22 @@ const initialSession = initialProgress.sessions?.active || {};
 
 const state = {
   languageId: initialSession.languageId || "en",
-  mode: initialSession.mode || "foreignToZh",
+  mode: initialSession.mode === "zhToForeign" ? "zhToForeign" : "foreignToZh",
   queue: initialSession.queue || "due",
   cardIndex: Number(initialSession.cardIndex) || 0,
   flipped: false,
   search: "",
   editingWordId: null,
+  editorOpen: false,
+  tappedWord: null,
+  speechSpeed: "normal",
   message: "",
   theme: loadTheme(),
   customContent: loadLanguageContent(),
   progress: initialProgress,
 };
+
+let lastAutoSpeakKey = "";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -93,7 +100,6 @@ function modeLabel(mode = state.mode) {
   const labels = {
     foreignToZh: "外语 → 中文",
     zhToForeign: "中文 → 外语",
-    mixed: "随机互译",
   };
   return labels[mode] || labels.foreignToZh;
 }
@@ -130,8 +136,84 @@ function persistSession() {
 }
 
 function activeDirection() {
-  if (state.mode === "mixed") return state.cardIndex % 2 === 0 ? "foreignToZh" : "zhToForeign";
   return state.mode;
+}
+
+function speechOptions() {
+  return {
+    slow: state.speechSpeed === "slow",
+    extraSlow: state.speechSpeed === "extraSlow",
+  };
+}
+
+function tokenKey(value) {
+  return String(value || "")
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[.,!?;:()[\]{}"“”]/g, "");
+}
+
+function splitFrenchApostrophe(token) {
+  const match = String(token).match(/^([A-Za-zÀ-ÿ]{1,2}['’])(.+)$/);
+  return match ? [match[1], match[2]] : [token];
+}
+
+function tokenizeText(text) {
+  const matches = String(text || "").match(/[\p{L}\p{M}\p{N}]+(?:['’][\p{L}\p{M}\p{N}]+)?|[^\s\p{L}\p{M}\p{N}]/gu) || [];
+  return matches.flatMap((token) => (/[\p{L}\p{M}\p{N}]/u.test(token) ? splitFrenchApostrophe(token) : [token]));
+}
+
+function findWordByToken(token, languageId = state.languageId) {
+  const key = tokenKey(token);
+  if (!key) return null;
+  return wordsForLanguage(languageId).find((word) => {
+    const values = [word.term, ...(word.forms || [])].map(tokenKey);
+    return values.includes(key);
+  });
+}
+
+function renderTapTokens(text, languageId = state.languageId) {
+  return tokenizeText(text)
+    .map((token) => {
+      const isWord = /[\p{L}\p{M}\p{N}]/u.test(token);
+      if (!isWord) return `<span class="tap-punct">${escapeHtml(token)}</span>`;
+      const active = tokenKey(state.tappedWord?.text) === tokenKey(token) ? " active" : "";
+      return `<button type="button" class="tap-word${active}" data-tap-word="${escapeHtml(token)}" data-tap-word-language="${escapeHtml(languageId)}">${escapeHtml(token)}</button>`;
+    })
+    .join("");
+}
+
+function renderTappedLookup() {
+  if (!state.tappedWord?.text) return "";
+  const match = findWordByToken(state.tappedWord.text, state.tappedWord.languageId);
+  return `
+    <section class="tap-lookup">
+      <p class="eyebrow">当前点读</p>
+      <h3 lang="${escapeHtml(getLanguage(state.tappedWord.languageId).speechLang)}">${escapeHtml(state.tappedWord.text)}</h3>
+      ${
+        match
+          ? `
+            <p>原形：${escapeHtml(match.term)}</p>
+            <p>词性：${escapeHtml(match.pos)}</p>
+            <p>释义：${escapeHtml(match.chinese)}</p>
+          `
+          : `<p>这个词还不在词库里，可以在“管理我的词库”里添加释义。</p>`
+      }
+    </section>
+  `;
+}
+
+function speedControl() {
+  const labels = [
+    ["normal", "正常"],
+    ["slow", "慢速"],
+    ["extraSlow", "超慢"],
+  ];
+  return `
+    <div class="speed-tabs" aria-label="语速">
+      ${labels.map(([speed, label]) => `<button type="button" class="${state.speechSpeed === speed ? "active" : ""}" data-speech-speed="${speed}">${label}</button>`).join("")}
+    </div>
+  `;
 }
 
 function matchesQuery(word, query) {
@@ -199,8 +281,6 @@ function listenActions(word) {
   return `
     <div class="listen-actions">
       <button class="icon-button" data-speak="${escapeHtml(word.term)}" data-speak-language="${escapeHtml(word.languageId)}" aria-label="播放">▶</button>
-      <button class="icon-button muted" data-slow="${escapeHtml(word.term)}" data-speak-language="${escapeHtml(word.languageId)}" aria-label="慢速">慢</button>
-      <button class="icon-button extra-slow" data-extra-slow="${escapeHtml(word.term)}" data-speak-language="${escapeHtml(word.languageId)}" aria-label="超慢">超慢</button>
     </div>
   `;
 }
@@ -337,6 +417,8 @@ function renderStudyCard() {
   const prompt = direction === "zhToForeign" ? word.chinese : word.term;
   const answerMain = direction === "zhToForeign" ? word.term : word.chinese;
   const language = currentLanguage();
+  const phraseText = word.example || word.term;
+  const fullSpeakText = word.example || word.term;
   return `
     <section class="panel word-study-panel language-study-panel">
       <div class="section-title">
@@ -344,7 +426,7 @@ function renderStudyCard() {
         <span>${(state.cardIndex % words.length) + 1} / ${words.length}</span>
       </div>
       <div class="mode-tabs language-mode-tabs">
-        ${["foreignToZh", "zhToForeign", "mixed"]
+        ${["foreignToZh", "zhToForeign"]
           .map((mode) => `<button class="${state.mode === mode ? "active" : ""}" data-mode="${mode}">${modeLabel(mode)}</button>`)
           .join("")}
       </div>
@@ -354,9 +436,9 @@ function renderStudyCard() {
           <span>${escapeHtml(word.source || "基础词库")}</span>
         </div>
         <div class="study-card-face">
-          <h3 lang="${escapeHtml(language.speechLang)}">${escapeHtml(prompt)}</h3>
+          <h3 lang="${escapeHtml(language.speechLang)}">${direction === "foreignToZh" ? renderTapTokens(prompt, word.languageId) : escapeHtml(prompt)}</h3>
           ${direction === "foreignToZh" && word.reading ? `<p class="ipa big">读音 ${escapeHtml(word.reading)}</p>` : ""}
-          ${listenActions(word)}
+          ${direction === "foreignToZh" ? `<p class="auto-speak-note">看到单词会自动发音；点单词可单独听。</p>` : ""}
         </div>
         <div class="study-card-back ${state.flipped ? "visible" : ""}">
           <p class="answer-main" lang="${escapeHtml(language.speechLang)}">${escapeHtml(answerMain)}</p>
@@ -364,6 +446,14 @@ function renderStudyCard() {
           ${word.reading ? `<p class="ipa">读音 ${escapeHtml(word.reading)}</p>` : ""}
           ${word.example ? `<p class="lookup-example">${escapeHtml(word.example)}</p>` : ""}
         </div>
+      </article>
+      <article class="sentence-tap-card">
+        <p class="eyebrow">句子点读</p>
+        <div class="tap-sentence" lang="${escapeHtml(language.speechLang)}">${renderTapTokens(phraseText, word.languageId)}</div>
+        ${renderTappedLookup()}
+        <p class="sentence-translation">${escapeHtml(word.chinese)}</p>
+        ${speedControl()}
+        <button class="full-sentence-play" type="button" data-speak-full="${escapeHtml(fullSpeakText)}" data-speak-language="${escapeHtml(word.languageId)}">播放整句</button>
       </article>
       <div class="word-deck-actions">
         <button data-prev-word>上一张</button>
@@ -375,6 +465,33 @@ function renderStudyCard() {
         <button data-rate-language="${escapeHtml(word.id)}:fuzzy">模糊</button>
         <button data-rate-language="${escapeHtml(word.id)}:known">认识</button>
       </div>
+    </section>
+  `;
+}
+
+function renderEditorManager() {
+  if (!state.editorOpen) {
+    return `
+      <section class="panel language-editor-entry">
+        <div>
+          <h2>管理我的词库</h2>
+          <p>添加、编辑、导入和导出都收在这里，手机背词时不用一直往下拖。</p>
+        </div>
+        <button class="primary-action" type="button" data-toggle-editor="open">打开管理</button>
+      </section>
+    `;
+  }
+  return `
+    <section class="language-editor-drawer">
+      <div class="section-title">
+        <h2>管理我的词库</h2>
+        <button type="button" data-toggle-editor="close">收起</button>
+      </div>
+      <div class="custom-grid">
+        ${renderWordForm()}
+        ${renderCustomList()}
+      </div>
+      ${renderBackupPanel()}
     </section>
   `;
 }
@@ -468,13 +585,10 @@ function render() {
           ${renderSearchPanel()}
         </aside>
       </div>
-      <div class="custom-grid">
-        ${renderWordForm()}
-        ${renderCustomList()}
-      </div>
-      ${renderBackupPanel()}
+      ${renderEditorManager()}
     </main>
   `;
+  autoSpeakCurrentWord();
 }
 
 function parseFormsText(value, term) {
@@ -507,15 +621,20 @@ app.addEventListener("click", (event) => {
   const target = event.target.closest("button");
   if (!target) return;
 
-  if (target.dataset.speak) speakLanguage(target.dataset.speak, target.dataset.speakLanguage || state.languageId);
-  if (target.dataset.slow) speakLanguage(target.dataset.slow, target.dataset.speakLanguage || state.languageId, { slow: true });
-  if (target.dataset.extraSlow) speakLanguage(target.dataset.extraSlow, target.dataset.speakLanguage || state.languageId, { extraSlow: true });
+  if (target.dataset.speak) speakLanguage(target.dataset.speak, target.dataset.speakLanguage || state.languageId, speechOptions());
+  if (target.dataset.speakFull) speakLanguage(target.dataset.speakFull, target.dataset.speakLanguage || state.languageId, speechOptions());
+  if (target.dataset.tapWord) {
+    state.tappedWord = { text: target.dataset.tapWord, languageId: target.dataset.tapWordLanguage || state.languageId };
+    speakLanguage(state.tappedWord.text, state.tappedWord.languageId, speechOptions());
+    render();
+  }
 
   if (target.dataset.language) {
     state.languageId = target.dataset.language;
     state.cardIndex = 0;
     state.flipped = false;
     state.editingWordId = null;
+    state.tappedWord = null;
     state.message = "";
     persistSession();
     render();
@@ -523,6 +642,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.mode) {
     state.mode = target.dataset.mode;
     state.flipped = false;
+    state.tappedWord = null;
     persistSession();
     render();
   }
@@ -531,7 +651,12 @@ app.addEventListener("click", (event) => {
     state.cardIndex = 0;
     state.flipped = false;
     state.search = "";
+    state.tappedWord = null;
     persistSession();
+    render();
+  }
+  if (target.dataset.speechSpeed) {
+    state.speechSpeed = target.dataset.speechSpeed;
     render();
   }
   if (target.dataset.toggleTheme !== undefined) {
@@ -543,6 +668,7 @@ app.addEventListener("click", (event) => {
     const words = studyWords();
     state.cardIndex = (state.cardIndex - 1 + words.length) % Math.max(words.length, 1);
     state.flipped = false;
+    state.tappedWord = null;
     persistSession();
     render();
   }
@@ -550,6 +676,7 @@ app.addEventListener("click", (event) => {
     const words = studyWords();
     state.cardIndex = (state.cardIndex + 1) % Math.max(words.length, 1);
     state.flipped = false;
+    state.tappedWord = null;
     persistSession();
     render();
   }
@@ -564,12 +691,19 @@ app.addEventListener("click", (event) => {
     const words = studyWords();
     state.cardIndex = words.length ? state.cardIndex % words.length : 0;
     state.flipped = false;
+    state.tappedWord = null;
     persistSession();
     render();
   }
   if (target.dataset.editWord) {
     state.editingWordId = target.dataset.editWord;
+    state.editorOpen = true;
     state.message = "";
+    render();
+  }
+  if (target.dataset.toggleEditor) {
+    state.editorOpen = target.dataset.toggleEditor === "open";
+    if (!state.editorOpen) state.editingWordId = null;
     render();
   }
   if (target.dataset.cancelEdit !== undefined) {
@@ -601,14 +735,14 @@ app.addEventListener("click", (event) => {
     render();
   }
   if (target.dataset.testVoice !== undefined) {
-    speakLanguage(currentWord()?.term || "hello", state.languageId);
+    speakLanguage(currentWord()?.term || "hello", state.languageId, speechOptions());
   }
 });
 
 app.addEventListener("change", (event) => {
   if (!event.target.matches("[data-language-voice-select]")) return;
   setSelectedLanguageVoiceName(state.languageId, event.target.value);
-  speakLanguage(currentWord()?.term || "hello", state.languageId);
+  speakLanguage(currentWord()?.term || "hello", state.languageId, speechOptions());
   render();
 });
 
@@ -619,6 +753,7 @@ app.addEventListener("input", (event) => {
   state.search = event.target.value;
   state.cardIndex = 0;
   state.flipped = false;
+  state.tappedWord = null;
   render();
 });
 
@@ -638,9 +773,19 @@ app.addEventListener("submit", (event) => {
     example: formValue(form, "example"),
   });
   state.editingWordId = null;
+  state.editorOpen = true;
   state.search = "";
   state.message = "单词已保存，会出现在当前语言的单词卡片里。";
   render();
 });
 
 render();
+
+function autoSpeakCurrentWord() {
+  const word = currentWord();
+  if (!word || activeDirection() !== "foreignToZh") return;
+  const key = `${word.id}:${state.languageId}:${state.cardIndex}:${state.queue}`;
+  if (key === lastAutoSpeakKey) return;
+  lastAutoSpeakKey = key;
+  speakLanguage(word.term, word.languageId, speechOptions());
+}

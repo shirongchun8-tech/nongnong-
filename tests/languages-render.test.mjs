@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 const storage = {};
+const spoken = [];
 global.localStorage = {
   getItem(key) {
     return storage[key] || null;
@@ -26,7 +27,9 @@ global.window = {
     },
     addEventListener() {},
     cancel() {},
-    speak() {},
+    speak(utterance) {
+      spoken.push({ text: utterance.text, lang: utterance.lang, rate: utterance.rate });
+    },
   },
   confirm() {
     return true;
@@ -125,6 +128,8 @@ assert.match(app.innerHTML, /韩语/);
 assert.match(app.innerHTML, /法语/);
 assert.match(app.innerHTML, /日语/);
 assert.match(app.innerHTML, /外语 → 中文/);
+assert.match(app.innerHTML, /中文 → 外语/);
+assert.doesNotMatch(app.innerHTML, /随机互译/);
 assert.match(app.innerHTML, /搜索单词或中文/);
 assert.match(app.innerHTML, /语音引擎/);
 assert.match(app.innerHTML, /Alex · en-US/);
@@ -136,20 +141,36 @@ assert.match(app.innerHTML, /今日待复习/);
 assert.match(app.innerHTML, /不认识/);
 assert.match(app.innerHTML, /模糊/);
 assert.match(app.innerHTML, /认识/);
+assert.match(app.innerHTML, /data-tap-word="hello"/);
+assert.match(app.innerHTML, /data-speech-speed="normal"/);
+assert.match(app.innerHTML, /管理我的词库/);
+assert.doesNotMatch(app.innerHTML, /name="term"/);
+assert.equal(spoken[0]?.text, "hello");
 
 click({ rateLanguage: "starter-en-0:known" });
 assert.match(storage["multi-language-word-studio-progress"], /starter-en-0/);
 assert.match(app.innerHTML, /已记录：认识/);
+assert.equal(spoken.at(-1)?.text, "thank you");
 
 click({ language: "ko" });
 assert.match(app.innerHTML, /안녕하세요/);
 assert.match(app.innerHTML, /韩语/);
+assert.equal(spoken.at(-1)?.text, "안녕하세요");
 
 click({ mode: "zhToForeign" });
 assert.match(app.innerHTML, /中文 → 外语/);
+assert.equal(spoken.at(-1)?.text, "안녕하세요");
+
+click({ tapWord: "안녕하세요", tapWordLanguage: "ko" });
+assert.match(app.innerHTML, /当前点读/);
+assert.equal(spoken.at(-1)?.text, "안녕하세요");
 
 input("water");
 assert.match(app.innerHTML, /water/);
+
+click({ toggleEditor: "open" });
+assert.match(app.innerHTML, /name="term"/);
+assert.match(app.innerHTML, /我的韩语词库/);
 
 submit({
   term: "moon",
