@@ -1,5 +1,6 @@
 const KEY = "french-study-tool-progress";
 const WORD_KEY = "french-study-tool-word-progress";
+const CUSTOM_KEY = "french-study-tool-custom-content";
 
 export function loadProgress() {
   try {
@@ -88,4 +89,103 @@ export function isWeakWord(record, now = new Date()) {
   const mistakes = (record.fuzzy || 0) + (record.unknown || 0);
   const errorRate = record.seen ? mistakes / record.seen : 1;
   return record.status !== "known" || errorRate >= 0.4 || isReviewDue(record, now);
+}
+
+function createCustomId(type) {
+  const random = Math.random().toString(36).slice(2, 8);
+  return `custom-${type}-${Date.now()}-${random}`;
+}
+
+function cleanText(value) {
+  return String(value ?? "").trim();
+}
+
+function normalizeForms(forms, french) {
+  const values = Array.isArray(forms)
+    ? forms
+    : String(forms || "")
+        .split(/[,，;；\n]/)
+        .map((item) => item.trim());
+  const unique = values.filter(Boolean);
+  if (french && !unique.includes(french)) unique.unshift(french);
+  return [...new Set(unique)];
+}
+
+function normalizeCustomWord(item = {}) {
+  const french = cleanText(item.french || item.lemma || item.word);
+  return {
+    id: cleanText(item.id) || createCustomId("word"),
+    french,
+    chinese: cleanText(item.chinese || item.back),
+    pos: cleanText(item.pos) || "自定义词汇",
+    ipa: cleanText(item.ipa),
+    forms: normalizeForms(item.forms, french),
+    example: cleanText(item.example),
+    updatedAt: cleanText(item.updatedAt) || new Date().toISOString(),
+  };
+}
+
+function normalizeCustomSentence(item = {}) {
+  return {
+    id: cleanText(item.id) || createCustomId("sentence"),
+    french: cleanText(item.french || item.front),
+    chinese: cleanText(item.chinese || item.back),
+    updatedAt: cleanText(item.updatedAt) || new Date().toISOString(),
+  };
+}
+
+export function normalizeCustomContent(content = {}) {
+  const words = (Array.isArray(content.words) ? content.words : [])
+    .map(normalizeCustomWord)
+    .filter((item) => item.french && item.chinese);
+  const sentences = (Array.isArray(content.sentences) ? content.sentences : [])
+    .map(normalizeCustomSentence)
+    .filter((item) => item.french && item.chinese);
+  return { version: 1, words, sentences };
+}
+
+export function loadCustomContent() {
+  try {
+    return normalizeCustomContent(JSON.parse(localStorage.getItem(CUSTOM_KEY)) || {});
+  } catch {
+    return normalizeCustomContent();
+  }
+}
+
+export function saveCustomContent(content) {
+  const normalized = normalizeCustomContent(content);
+  localStorage.setItem(CUSTOM_KEY, JSON.stringify(normalized));
+  return normalized;
+}
+
+export function upsertCustomItem(content, type, item) {
+  const key = type === "sentences" ? "sentences" : "words";
+  const normalized = normalizeCustomContent(content);
+  const nextItem = key === "words" ? normalizeCustomWord(item) : normalizeCustomSentence(item);
+  const items = normalized[key].filter((current) => current.id !== nextItem.id);
+  return saveCustomContent({ ...normalized, [key]: [...items, { ...nextItem, updatedAt: new Date().toISOString() }] });
+}
+
+export function deleteCustomItem(content, type, id) {
+  const key = type === "sentences" ? "sentences" : "words";
+  const normalized = normalizeCustomContent(content);
+  return saveCustomContent({ ...normalized, [key]: normalized[key].filter((item) => item.id !== id) });
+}
+
+export function exportCustomContent(content) {
+  return JSON.stringify(normalizeCustomContent(content), null, 2);
+}
+
+export function importCustomContent(json, current = loadCustomContent()) {
+  const incoming = normalizeCustomContent(JSON.parse(json));
+  const existing = normalizeCustomContent(current);
+  const mergeById = (left, right) => {
+    const map = new Map(left.map((item) => [item.id, item]));
+    for (const item of right) map.set(item.id, item);
+    return [...map.values()];
+  };
+  return saveCustomContent({
+    words: mergeById(existing.words, incoming.words),
+    sentences: mergeById(existing.sentences, incoming.sentences),
+  });
 }

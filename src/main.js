@@ -1,13 +1,18 @@
 import { courseData } from "./data/courseData.js?v=auto-pronounce";
 import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
 import {
+  deleteCustomItem,
+  exportCustomContent,
   getWordStatus,
+  importCustomContent,
   isWeakWord,
+  loadCustomContent,
   loadProgress,
   loadWordProgress,
   resetProgress,
   saveReview,
   saveWordProgress,
+  upsertCustomItem,
 } from "./storage.js";
 
 const app = document.querySelector("#app");
@@ -48,6 +53,10 @@ let state = {
   cardIndex: 0,
   cardFlipped: false,
   lookupWordKey: null,
+  editingCustomWordId: null,
+  editingCustomSentenceId: null,
+  customMessage: "",
+  customContent: loadCustomContent(),
   progress: loadProgress(),
   wordProgress: loadWordProgress(),
 };
@@ -107,18 +116,48 @@ function normalizeVocabItem(item) {
   };
 }
 
-const allWords = (courseData.sections?.words || []).map(normalizeVocabItem);
-const wordByKey = new Map(allWords.map((word) => [word.key, word]));
-const wordByForm = new Map();
-for (const word of allWords) {
-  wordByForm.set(normalizeWord(word.lemma), word);
-  for (const form of word.forms) wordByForm.set(normalizeWord(form), word);
+const baseWords = (courseData.sections?.words || []).map(normalizeVocabItem);
+let cachedCustomContentRef = null;
+let cachedAllWords = null;
+let cachedWordMaps = null;
+
+function customWordToVocabItem(item) {
+  return normalizeVocabItem({
+    ...item,
+    key: `custom-word-${item.id}`,
+    lemma: item.french,
+    forms: item.forms?.length ? item.forms : [item.french],
+    sources: ["我的内容"],
+    frequency: 1,
+  });
+}
+
+function allWords() {
+  if (cachedCustomContentRef === state.customContent && cachedAllWords) return cachedAllWords;
+  cachedCustomContentRef = state.customContent;
+  cachedAllWords = [...baseWords, ...state.customContent.words.map(customWordToVocabItem)];
+  cachedWordMaps = null;
+  return cachedAllWords;
+}
+
+function wordMaps() {
+  if (cachedWordMaps) return cachedWordMaps;
+  const words = allWords();
+  const byKey = new Map(words.map((word) => [word.key, word]));
+  const byForm = new Map();
+  for (const word of words) {
+    byForm.set(normalizeWord(word.lemma), word);
+    for (const form of word.forms) byForm.set(normalizeWord(form), word);
+  }
+  cachedWordMaps = { byKey, byForm };
+  return cachedWordMaps;
 }
 
 function findWord(rawWord) {
   const normalized = normalizeWord(rawWord);
   if (!normalized) return null;
-  return wordByForm.get(normalized) || wordByForm.get(normalized.replace(/s$/, "")) || null;
+  const { byForm } = wordMaps();
+  return byForm.get(normalized) || byForm.get(normalized.replace(/s$/, "")) || null;
 }
 
 function wordStatus(word) {
@@ -126,8 +165,9 @@ function wordStatus(word) {
 }
 
 function globalStats() {
-  const total = allWords.length;
-  const known = allWords.filter((word) => wordStatus(word) === "known").length;
+  const words = allWords();
+  const total = words.length;
+  const known = words.filter((word) => wordStatus(word) === "known").length;
   return { total, known, weak: total - known };
 }
 
@@ -148,8 +188,50 @@ function listenActions(text, label = "播放") {
 }
 
 function sectionLabel(section = state.section) {
-  const labels = { words: "单词", grammar: "语法", sentences: "句子", review: "复习" };
+  const labels = { words: "单词", grammar: "语法", sentences: "句子", review: "复习", custom: "我的内容" };
   return labels[section] || "单词";
+}
+
+function customSentences() {
+  return state.customContent.sentences.map((item) => ({
+    id: `custom-sentence-${item.id}`,
+    french: item.french,
+    chinese: item.chinese,
+    source: "我的内容",
+    customId: item.id,
+  }));
+}
+
+function allSentences() {
+  return [...(courseData.sections?.sentences || []), ...customSentences()];
+}
+
+function customReviewCards() {
+  return [
+    ...state.customContent.words.map((word) => ({
+      id: `custom-review-word-${word.id}`,
+      type: "vocabulary",
+      front: word.french,
+      back: word.chinese,
+      pos: word.pos || "自定义词汇",
+      ipa: word.ipa || "",
+      forms: word.forms?.length ? word.forms : [word.french],
+      example: word.example || "",
+      wordKey: `custom-word-${word.id}`,
+      sources: ["我的内容"],
+    })),
+    ...state.customContent.sentences.map((sentence) => ({
+      id: `custom-review-sentence-${sentence.id}`,
+      type: "sentence",
+      front: sentence.french,
+      back: sentence.chinese,
+      source: "我的内容",
+    })),
+  ];
+}
+
+function allReviewCards() {
+  return [...(courseData.reviewCards || []), ...customReviewCards()];
 }
 
 function renderShell(content) {
@@ -164,7 +246,7 @@ function renderShell(content) {
         <p>先打牢词汇，再看语法，最后进入句子口语训练。</p>
       </div>
       <div class="top-actions">
-        ${["words", "grammar", "sentences", "review"]
+        ${["words", "grammar", "sentences", "review", "custom"]
           .map(
             (section) =>
               `<button class="${state.section === section ? "active" : ""}" data-section="${section}">${sectionLabel(section)}</button>`,
@@ -208,7 +290,7 @@ function renderShell(content) {
             <span>待学习</span>
           </div>
           <div class="stat">
-            <strong>${courseData.sections?.sentences?.length || 0}</strong>
+            <strong>${allSentences().length}</strong>
             <span>句子</span>
           </div>
         </section>
@@ -231,8 +313,9 @@ function renderShell(content) {
 }
 
 function filteredWords() {
-  if (!state.onlyWeak) return allWords;
-  return allWords.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
+  const words = allWords();
+  if (!state.onlyWeak) return words;
+  return words.filter((word) => isWeakWord(state.wordProgress.words[word.key]));
 }
 
 function currentWord() {
@@ -361,7 +444,7 @@ function sentenceUnknownCount(sentence) {
 }
 
 function filteredSentences() {
-  let sentences = [...(courseData.sections?.sentences || [])];
+  let sentences = [...allSentences()];
   if (state.beginnerMode) {
     sentences = sentences.sort((a, b) => sentenceUnknownCount(a.french) - sentenceUnknownCount(b.french));
   }
@@ -373,7 +456,6 @@ function filteredSentences() {
 
 function renderSentences() {
   const sentences = filteredSentences();
-  const total = courseData.sections?.sentences?.length || 0;
   const sentence = sentences[state.sentenceIndex % Math.max(sentences.length, 1)];
   if (!sentence) {
     return `
@@ -417,6 +499,123 @@ function renderSentences() {
   `;
 }
 
+function csvForms(forms) {
+  return (forms || []).join(", ");
+}
+
+function renderCustomWordsList() {
+  if (!state.customContent.words.length) {
+    return `<p class="empty">还没有自己添加的单词。</p>`;
+  }
+  return state.customContent.words
+    .map(
+      (word) => `
+        <article class="custom-item">
+          <div>
+            <strong lang="fr">${escapeHtml(word.french)}</strong>
+            <p>${escapeHtml(word.chinese)} · ${escapeHtml(word.pos || "自定义词汇")}</p>
+            ${word.example ? `<small lang="fr">${escapeHtml(word.example)}</small>` : ""}
+          </div>
+          <div class="custom-actions">
+            ${listenActions(word.french, "播放单词")}
+            <button data-edit-custom-word="${escapeHtml(word.id)}">编辑</button>
+            <button class="danger-button" data-delete-custom-word="${escapeHtml(word.id)}">删除</button>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderCustomSentencesList() {
+  if (!state.customContent.sentences.length) {
+    return `<p class="empty">还没有自己添加的句子。</p>`;
+  }
+  return state.customContent.sentences
+    .map(
+      (sentence) => `
+        <article class="custom-item">
+          <div>
+            <strong lang="fr">${escapeHtml(sentence.french)}</strong>
+            <p>${escapeHtml(sentence.chinese)}</p>
+          </div>
+          <div class="custom-actions">
+            ${listenActions(sentence.french, "播放句子")}
+            <button data-edit-custom-sentence="${escapeHtml(sentence.id)}">编辑</button>
+            <button class="danger-button" data-delete-custom-sentence="${escapeHtml(sentence.id)}">删除</button>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderCustomContent() {
+  const editingWord = state.customContent.words.find((word) => word.id === state.editingCustomWordId) || {};
+  const editingSentence = state.customContent.sentences.find((sentence) => sentence.id === state.editingCustomSentenceId) || {};
+  return `
+    <div class="chapter-header">
+      <p class="eyebrow">My Content</p>
+      <h2>我的内容</h2>
+      <p>这里添加的单词和句子会保存在当前浏览器里，并进入单词卡片、句子卡片和复习。</p>
+    </div>
+    ${state.customMessage ? `<p class="custom-message">${escapeHtml(state.customMessage)}</p>` : ""}
+    <section class="custom-grid">
+      <form class="panel custom-form" data-custom-word-form>
+        <div class="section-title">
+          <h2>${editingWord.id ? "编辑单词" : "添加单词"}</h2>
+          ${editingWord.id ? `<button type="button" class="text-button" data-cancel-custom-word>取消编辑</button>` : ""}
+        </div>
+        <input type="hidden" name="id" value="${escapeHtml(editingWord.id || "")}">
+        <label>法语单词<input name="french" required value="${escapeHtml(editingWord.french || "")}" placeholder="ex. une lampe"></label>
+        <label>中文释义<input name="chinese" required value="${escapeHtml(editingWord.chinese || "")}" placeholder="ex. 一盏灯"></label>
+        <label>词性<input name="pos" value="${escapeHtml(editingWord.pos || "")}" placeholder="名词 / 动词 / 形容词"></label>
+        <label>音标<input name="ipa" value="${escapeHtml(editingWord.ipa || "")}" placeholder="/lɑ̃p/"></label>
+        <label>词形<textarea name="forms" rows="2" placeholder="复数或变位，用逗号分开">${escapeHtml(csvForms(editingWord.forms))}</textarea></label>
+        <label>例句<textarea name="example" rows="3" placeholder="Où est la lampe ?">${escapeHtml(editingWord.example || "")}</textarea></label>
+        <button class="primary-action" type="submit">${editingWord.id ? "保存单词" : "添加单词"}</button>
+      </form>
+      <form class="panel custom-form" data-custom-sentence-form>
+        <div class="section-title">
+          <h2>${editingSentence.id ? "编辑句子" : "添加句子"}</h2>
+          ${editingSentence.id ? `<button type="button" class="text-button" data-cancel-custom-sentence>取消编辑</button>` : ""}
+        </div>
+        <input type="hidden" name="id" value="${escapeHtml(editingSentence.id || "")}">
+        <label>法语句子<textarea name="french" required rows="4" placeholder="Je révise le français.">${escapeHtml(editingSentence.french || "")}</textarea></label>
+        <label>中文翻译<textarea name="chinese" required rows="4" placeholder="我复习法语。">${escapeHtml(editingSentence.chinese || "")}</textarea></label>
+        <button class="primary-action" type="submit">${editingSentence.id ? "保存句子" : "添加句子"}</button>
+      </form>
+    </section>
+    <section class="panel custom-backup-panel">
+      <div>
+        <h2>备份和导入</h2>
+        <p>导出 JSON 后可以发给我，我帮你合并进 GitHub。换手机时也可以粘贴 JSON 导入回来。</p>
+      </div>
+      <div class="backup-actions">
+        <button data-export-custom>导出我的内容</button>
+        <button data-import-custom>导入粘贴内容</button>
+      </div>
+      <textarea data-custom-import-text rows="5" placeholder="把 my-french-data.json 里的内容粘贴到这里再导入"></textarea>
+    </section>
+    <section class="custom-grid">
+      <div class="panel custom-list-panel">
+        <div class="section-title">
+          <h2>我的单词</h2>
+          <span>${state.customContent.words.length} 个</span>
+        </div>
+        ${renderCustomWordsList()}
+      </div>
+      <div class="panel custom-list-panel">
+        <div class="section-title">
+          <h2>我的句子</h2>
+          <span>${state.customContent.sentences.length} 条</span>
+        </div>
+        ${renderCustomSentencesList()}
+      </div>
+    </section>
+  `;
+}
+
 function renderClickableSentence(text) {
   let output = "";
   let lastIndex = 0;
@@ -436,12 +635,38 @@ function renderClickableSentence(text) {
   return output;
 }
 
+function parseFormsText(value, french) {
+  const forms = String(value || "")
+    .split(/[,，;；\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (french && !forms.includes(french)) forms.unshift(french);
+  return [...new Set(forms)];
+}
+
+function formValue(form, name) {
+  return String(new FormData(form).get(name) || "").trim();
+}
+
+function downloadCustomContent() {
+  const json = exportCustomContent(state.customContent);
+  const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `my-french-data-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 function getReviewCards() {
-  let cards = courseData.reviewCards || [];
+  let cards = allReviewCards();
   if (state.onlyWeak) {
     cards = cards.filter((card) => card.wordKey && isWeakWord(state.wordProgress.words[card.wordKey]));
   }
-  return cards.length ? cards : courseData.reviewCards || [];
+  return cards.length ? cards : allReviewCards();
 }
 
 function renderReviewView() {
@@ -497,7 +722,7 @@ function renderCardFront(card) {
 
 function renderLookup() {
   if (!state.lookupWordKey) return "";
-  const word = wordByKey.get(state.lookupWordKey);
+  const word = wordMaps().byKey.get(state.lookupWordKey);
   if (!word) return "";
   const status = wordStatus(word);
   return `
@@ -533,6 +758,8 @@ function render() {
         ? renderGrammar()
         : state.section === "sentences"
           ? renderSentences()
+          : state.section === "custom"
+            ? renderCustomContent()
           : renderWords();
   app.innerHTML = renderShell(content);
   scheduleAutoSpeakWord();
@@ -552,6 +779,57 @@ app.addEventListener("click", (event) => {
     state.wordFlipped = false;
     state.grammarFlipped = false;
     state.sentenceFlipped = false;
+    render();
+  }
+  if (target.dataset.editCustomWord) {
+    state.section = "custom";
+    state.editingCustomWordId = target.dataset.editCustomWord;
+    state.customMessage = "";
+    render();
+  }
+  if (target.dataset.editCustomSentence) {
+    state.section = "custom";
+    state.editingCustomSentenceId = target.dataset.editCustomSentence;
+    state.customMessage = "";
+    render();
+  }
+  if (target.dataset.cancelCustomWord !== undefined) {
+    state.editingCustomWordId = null;
+    render();
+  }
+  if (target.dataset.cancelCustomSentence !== undefined) {
+    state.editingCustomSentenceId = null;
+    render();
+  }
+  if (target.dataset.deleteCustomWord) {
+    if (typeof window.confirm !== "function" || window.confirm("删除这个自定义单词吗？")) {
+      state.customContent = deleteCustomItem(state.customContent, "words", target.dataset.deleteCustomWord);
+      state.editingCustomWordId = null;
+      state.customMessage = "已删除单词。";
+      render();
+    }
+  }
+  if (target.dataset.deleteCustomSentence) {
+    if (typeof window.confirm !== "function" || window.confirm("删除这个自定义句子吗？")) {
+      state.customContent = deleteCustomItem(state.customContent, "sentences", target.dataset.deleteCustomSentence);
+      state.editingCustomSentenceId = null;
+      state.customMessage = "已删除句子。";
+      render();
+    }
+  }
+  if (target.dataset.exportCustom !== undefined) {
+    downloadCustomContent();
+    state.customMessage = "已导出 JSON 备份。";
+    render();
+  }
+  if (target.dataset.importCustom !== undefined) {
+    const textarea = app.querySelector("[data-custom-import-text]");
+    try {
+      state.customContent = importCustomContent(textarea?.value || "", state.customContent);
+      state.customMessage = "导入成功，内容已合并。";
+    } catch {
+      state.customMessage = "导入失败：请粘贴完整的 JSON 内容。";
+    }
     render();
   }
   if (target.dataset.toggleTheme !== undefined) {
@@ -667,6 +945,37 @@ app.addEventListener("click", (event) => {
     state.cardFlipped = false;
     render();
   }
+});
+
+app.addEventListener("submit", (event) => {
+  const form = event.target;
+  if (!form?.matches?.("[data-custom-word-form], [data-custom-sentence-form]")) return;
+  event.preventDefault();
+  if (form.matches("[data-custom-word-form]")) {
+    const french = formValue(form, "french");
+    state.customContent = upsertCustomItem(state.customContent, "words", {
+      id: formValue(form, "id") || undefined,
+      french,
+      chinese: formValue(form, "chinese"),
+      pos: formValue(form, "pos"),
+      ipa: formValue(form, "ipa"),
+      forms: parseFormsText(formValue(form, "forms"), french),
+      example: formValue(form, "example"),
+    });
+    state.editingCustomWordId = null;
+    state.customMessage = "单词已保存，会出现在单词卡片和复习里。";
+  }
+  if (form.matches("[data-custom-sentence-form]")) {
+    state.customContent = upsertCustomItem(state.customContent, "sentences", {
+      id: formValue(form, "id") || undefined,
+      french: formValue(form, "french"),
+      chinese: formValue(form, "chinese"),
+    });
+    state.editingCustomSentenceId = null;
+    state.customMessage = "句子已保存，会出现在句子卡片和复习里。";
+  }
+  state.section = "custom";
+  render();
 });
 
 app.addEventListener("change", (event) => {

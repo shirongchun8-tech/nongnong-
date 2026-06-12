@@ -76,6 +76,13 @@ assert.match(app.innerHTML, /自动发音/);
 assert.match(app.innerHTML, /深色/);
 assert.match(global.document.body.className, /theme-light/);
 
+click({ section: "custom" });
+assert.match(app.innerHTML, /我的内容/);
+assert.match(app.innerHTML, /添加单词/);
+assert.match(app.innerHTML, /添加句子/);
+assert.match(app.innerHTML, /导出我的内容/);
+assert.match(app.innerHTML, /导入粘贴内容/);
+
 click({ section: "grammar" });
 assert.match(app.innerHTML, /语法/);
 assert.match(app.innerHTML, /显示答案/);
