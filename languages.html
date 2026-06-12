@@ -9,24 +9,6 @@
   </head>
   <body>
     <div id="language-app"></div>
-    <script>
-      window.__languageBootErrors = [];
-      window.addEventListener("error", function (event) {
-        window.__languageBootErrors.push({
-          type: "error",
-          message: event.message,
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
-        });
-      });
-      window.addEventListener("unhandledrejection", function (event) {
-        window.__languageBootErrors.push({
-          type: "rejection",
-          message: String(event.reason && (event.reason.stack || event.reason.message || event.reason)),
-        });
-      });
-    </script>
     <script type="module" src="./src/languages.js?v=fluid-voice-redesign"></script>
   </body>
 </html>
