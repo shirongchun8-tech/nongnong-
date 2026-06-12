@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=word-tap-redesign";
+import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=unified-screen-redesign";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,13 +11,13 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=word-tap-redesign";
+} from "./languageStorage.js?v=unified-screen-redesign";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=word-tap-redesign";
+} from "./languageSpeech.js?v=unified-screen-redesign";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
@@ -40,10 +40,11 @@ const state = {
   mode: initialSession.mode === "zhToForeign" ? "zhToForeign" : "foreignToZh",
   queue: initialSession.queue || "due",
   cardIndex: Number(initialSession.cardIndex) || 0,
-  flipped: false,
+  flipped: true,
   search: "",
   editingWordId: null,
   editorOpen: false,
+  toolsOpen: false,
   tappedWord: null,
   speechSpeed: "normal",
   message: "",
@@ -333,19 +334,6 @@ function renderVoicePanel() {
   `;
 }
 
-function renderIntroPanel() {
-  return `
-    <section class="chapter-header language-hero">
-      <div>
-        <p class="eyebrow">Words Only</p>
-        <h2>${escapeHtml(currentLanguage().label)}单词</h2>
-        <p>每天先复习到期词，再学新词。学习记录会自动保存在这个浏览器里。</p>
-      </div>
-      ${renderVoicePanel()}
-    </section>
-  `;
-}
-
 function renderSearchPanel() {
   const results = searchResults();
   return `
@@ -417,47 +405,47 @@ function renderStudyCard() {
   const prompt = direction === "zhToForeign" ? word.chinese : word.term;
   const answerMain = direction === "zhToForeign" ? word.term : word.chinese;
   const language = currentLanguage();
-  const phraseText = word.example || word.term;
-  const fullSpeakText = word.example || word.term;
+  const progress = `${(state.cardIndex % words.length) + 1} / ${words.length}`;
+  const answerLabel = direction === "zhToForeign" ? language.label : "中文";
+  const flipLabel = state.flipped ? `隐藏${answerLabel}` : `显示${answerLabel}`;
   return `
-    <section class="panel word-study-panel language-study-panel">
-      <div class="section-title">
-        <h2>${escapeHtml(language.label)} · ${queueLabel()}</h2>
-        <span>${(state.cardIndex % words.length) + 1} / ${words.length}</span>
+    <section class="panel word-study-panel language-study-panel unified-study-panel">
+      <div class="unified-topline">
+        <span>${escapeHtml(language.label)} · ${queueLabel()}</span>
+        <span>${escapeHtml(progress)}</span>
       </div>
       <div class="mode-tabs language-mode-tabs">
         ${["foreignToZh", "zhToForeign"]
           .map((mode) => `<button class="${state.mode === mode ? "active" : ""}" data-mode="${mode}">${modeLabel(mode)}</button>`)
           .join("")}
       </div>
-      <article class="study-card language-card">
-        <div class="card-progress">
+      <article class="study-card language-card unified-card">
+        <div class="card-progress unified-meta">
           <span>${direction === "zhToForeign" ? "看中文，说外语" : "看外语，想中文"}</span>
-          <span>${escapeHtml(word.source || "基础词库")}</span>
+          <span>出现即发音</span>
         </div>
-        <div class="study-card-face">
-          <h3 lang="${escapeHtml(language.speechLang)}">${direction === "foreignToZh" ? renderTapTokens(prompt, word.languageId) : escapeHtml(prompt)}</h3>
-          ${direction === "foreignToZh" && word.reading ? `<p class="ipa big">读音 ${escapeHtml(word.reading)}</p>` : ""}
-          ${direction === "foreignToZh" ? `<p class="auto-speak-note">看到单词会自动发音；点单词可单独听。</p>` : ""}
+        <div class="study-card-face unified-main">
+          <h3 class="${direction === "foreignToZh" ? "tap-sentence" : "plain-prompt"}" lang="${escapeHtml(language.speechLang)}">
+            ${direction === "foreignToZh" ? renderTapTokens(prompt, word.languageId) : escapeHtml(prompt)}
+          </h3>
+          <div class="unified-answer ${state.flipped ? "visible" : ""}">
+            <small>${escapeHtml(answerLabel)}</small>
+            <p lang="${escapeHtml(language.speechLang)}">
+              ${direction === "zhToForeign" ? renderTapTokens(answerMain, word.languageId) : escapeHtml(answerMain)}
+            </p>
+          </div>
+          ${renderTappedLookup()}
         </div>
-        <div class="study-card-back ${state.flipped ? "visible" : ""}">
-          <p class="answer-main" lang="${escapeHtml(language.speechLang)}">${escapeHtml(answerMain)}</p>
-          <p class="meta">${escapeHtml(word.pos)} · 词形：${escapeHtml(word.forms.join(", "))}</p>
-          ${word.reading ? `<p class="ipa">读音 ${escapeHtml(word.reading)}</p>` : ""}
-          ${word.example ? `<p class="lookup-example">${escapeHtml(word.example)}</p>` : ""}
+        <div class="unified-controls">
+          ${speedControl()}
+          <div class="unified-play-row">
+            <button class="full-sentence-play" type="button" data-speak-full="${escapeHtml(word.term)}" data-speak-language="${escapeHtml(word.languageId)}">播放整句</button>
+            <button type="button" data-flip-word>${escapeHtml(flipLabel)}</button>
+          </div>
         </div>
-      </article>
-      <article class="sentence-tap-card">
-        <p class="eyebrow">句子点读</p>
-        <div class="tap-sentence" lang="${escapeHtml(language.speechLang)}">${renderTapTokens(phraseText, word.languageId)}</div>
-        ${renderTappedLookup()}
-        <p class="sentence-translation">${escapeHtml(word.chinese)}</p>
-        ${speedControl()}
-        <button class="full-sentence-play" type="button" data-speak-full="${escapeHtml(fullSpeakText)}" data-speak-language="${escapeHtml(word.languageId)}">播放整句</button>
       </article>
       <div class="word-deck-actions">
         <button data-prev-word>上一张</button>
-        <button class="primary-action" data-flip-word>${state.flipped ? "隐藏答案" : "显示答案"}</button>
         <button data-next-word>下一张</button>
       </div>
       <div class="word-actions language-rate-actions">
@@ -465,6 +453,27 @@ function renderStudyCard() {
         <button data-rate-language="${escapeHtml(word.id)}:fuzzy">模糊</button>
         <button data-rate-language="${escapeHtml(word.id)}:known">认识</button>
       </div>
+    </section>
+  `;
+}
+
+function renderToolsManager() {
+  if (!state.toolsOpen) {
+    return `
+      <section class="panel language-tools-entry">
+        <button type="button" data-toggle-tools="open">工具与设置</button>
+      </section>
+    `;
+  }
+  return `
+    <section class="language-tools-drawer">
+      <div class="section-title">
+        <h2>工具与设置</h2>
+        <button type="button" data-toggle-tools="close">收起</button>
+      </div>
+      ${renderVoicePanel()}
+      ${renderProgressPanel()}
+      ${renderSearchPanel()}
     </section>
   `;
 }
@@ -577,14 +586,8 @@ function render() {
     ${renderHeader()}
     <main class="layout language-layout">
       ${state.message ? `<p class="custom-message">${escapeHtml(state.message)}</p>` : ""}
-      <div class="language-grid">
-        ${renderStudyCard()}
-        <aside class="language-side-flow">
-          ${renderIntroPanel()}
-          ${renderProgressPanel()}
-          ${renderSearchPanel()}
-        </aside>
-      </div>
+      ${renderStudyCard()}
+      ${renderToolsManager()}
       ${renderEditorManager()}
     </main>
   `;
@@ -632,7 +635,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.language) {
     state.languageId = target.dataset.language;
     state.cardIndex = 0;
-    state.flipped = false;
+    state.flipped = true;
     state.editingWordId = null;
     state.tappedWord = null;
     state.message = "";
@@ -641,7 +644,7 @@ app.addEventListener("click", (event) => {
   }
   if (target.dataset.mode) {
     state.mode = target.dataset.mode;
-    state.flipped = false;
+    state.flipped = true;
     state.tappedWord = null;
     persistSession();
     render();
@@ -649,7 +652,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.queue) {
     state.queue = target.dataset.queue;
     state.cardIndex = 0;
-    state.flipped = false;
+    state.flipped = true;
     state.search = "";
     state.tappedWord = null;
     persistSession();
@@ -667,7 +670,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.prevWord !== undefined) {
     const words = studyWords();
     state.cardIndex = (state.cardIndex - 1 + words.length) % Math.max(words.length, 1);
-    state.flipped = false;
+    state.flipped = true;
     state.tappedWord = null;
     persistSession();
     render();
@@ -675,7 +678,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.nextWord !== undefined) {
     const words = studyWords();
     state.cardIndex = (state.cardIndex + 1) % Math.max(words.length, 1);
-    state.flipped = false;
+    state.flipped = true;
     state.tappedWord = null;
     persistSession();
     render();
@@ -690,9 +693,13 @@ app.addEventListener("click", (event) => {
     state.message = `已记录：${ratingLabel(rating)}。`;
     const words = studyWords();
     state.cardIndex = words.length ? state.cardIndex % words.length : 0;
-    state.flipped = false;
+    state.flipped = true;
     state.tappedWord = null;
     persistSession();
+    render();
+  }
+  if (target.dataset.toggleTools) {
+    state.toolsOpen = target.dataset.toggleTools === "open";
     render();
   }
   if (target.dataset.editWord) {
@@ -752,7 +759,7 @@ app.addEventListener("input", (event) => {
   if (!event.target.matches("[data-language-search]")) return;
   state.search = event.target.value;
   state.cardIndex = 0;
-  state.flipped = false;
+  state.flipped = true;
   state.tappedWord = null;
   render();
 });
