@@ -286,27 +286,6 @@ function listenActions(word) {
   `;
 }
 
-function renderHeader() {
-  return `
-    <header class="topbar language-topbar">
-      <div class="brand-block">
-        <p class="eyebrow">Language Word Studio</p>
-        <h1>多语言单词学习</h1>
-        <p>用翻译卡片背英语、韩语、法语、日语。查词、发音和自己加词都在一个页面里。</p>
-      </div>
-      <div class="top-actions language-tabs">
-        ${languageCatalog
-          .map(
-            (language) =>
-              `<button class="${state.languageId === language.id ? "active" : ""}" data-language="${language.id}">${language.label}</button>`,
-          )
-          .join("")}
-        <button data-toggle-theme>${state.theme === "dark" ? "浅色" : "深色"}</button>
-      </div>
-    </header>
-  `;
-}
-
 function renderVoicePanel() {
   const language = currentLanguage();
   const voices = getLanguageVoiceOptions(state.languageId);
@@ -330,6 +309,22 @@ function renderVoicePanel() {
         <button type="button" data-test-voice>试听</button>
       </div>
       <p>${voices.length ? "如果发音不自然，可以在这里换手机或电脑里的语音引擎。" : "当前浏览器没有检测到这个语言的语音包。"}</p>
+    </section>
+  `;
+}
+
+function renderLanguageTools() {
+  return `
+    <section class="language-switch-panel" aria-label="语言和主题">
+      <div class="language-switch-row">
+        ${languageCatalog
+          .map(
+            (language) =>
+              `<button class="${state.languageId === language.id ? "active" : ""}" data-language="${language.id}">${language.label}</button>`,
+          )
+          .join("")}
+      </div>
+      <button class="language-theme-toggle" type="button" data-toggle-theme>${state.theme === "dark" ? "浅色" : "深色"}</button>
     </section>
   `;
 }
@@ -407,7 +402,7 @@ function renderStudyCard() {
   const language = currentLanguage();
   const progress = `${(state.cardIndex % words.length) + 1} / ${words.length}`;
   const answerLabel = direction === "zhToForeign" ? language.label : "中文";
-  const flipLabel = state.flipped ? `隐藏${answerLabel}` : `显示${answerLabel}`;
+  const flipLabel = state.flipped ? "隐藏" : "显示";
   return `
     <section class="panel word-study-panel language-study-panel unified-study-panel">
       <div class="unified-topline">
@@ -420,14 +415,12 @@ function renderStudyCard() {
           .join("")}
       </div>
       <article class="study-card language-card unified-card">
-        <div class="card-progress unified-meta">
-          <span>${direction === "zhToForeign" ? "看中文，说外语" : "看外语，想中文"}</span>
-          <span>出现即发音</span>
-        </div>
         <div class="study-card-face unified-main">
-          <h3 class="${direction === "foreignToZh" ? "tap-sentence" : "plain-prompt"}" lang="${escapeHtml(language.speechLang)}">
-            ${direction === "foreignToZh" ? renderTapTokens(prompt, word.languageId) : escapeHtml(prompt)}
-          </h3>
+          <div class="tap-sentence-scroll">
+            <h3 class="${direction === "foreignToZh" ? "tap-sentence" : "plain-prompt"}" lang="${escapeHtml(language.speechLang)}">
+              ${direction === "foreignToZh" ? renderTapTokens(prompt, word.languageId) : escapeHtml(prompt)}
+            </h3>
+          </div>
           <div class="unified-answer ${state.flipped ? "visible" : ""}">
             <small>${escapeHtml(answerLabel)}</small>
             <p lang="${escapeHtml(language.speechLang)}">
@@ -471,6 +464,7 @@ function renderToolsManager() {
         <h2>工具与设置</h2>
         <button type="button" data-toggle-tools="close">收起</button>
       </div>
+      ${renderLanguageTools()}
       ${renderVoicePanel()}
       ${renderProgressPanel()}
       ${renderSearchPanel()}
@@ -583,7 +577,6 @@ function renderBackupPanel() {
 function render() {
   applyTheme();
   app.innerHTML = `
-    ${renderHeader()}
     <main class="layout language-layout">
       ${state.message ? `<p class="custom-message">${escapeHtml(state.message)}</p>` : ""}
       ${renderStudyCard()}

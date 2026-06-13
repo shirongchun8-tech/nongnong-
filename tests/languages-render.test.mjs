@@ -122,17 +122,19 @@ function submit(values) {
   app.listeners.submit({ target: form, preventDefault() {} });
 }
 
-assert.match(app.innerHTML, /Language Word Studio/);
 assert.match(app.innerHTML, /英语/);
-assert.match(app.innerHTML, /韩语/);
-assert.match(app.innerHTML, /法语/);
-assert.match(app.innerHTML, /日语/);
+assert.doesNotMatch(app.innerHTML, /韩语/);
+assert.doesNotMatch(app.innerHTML, /法语/);
+assert.doesNotMatch(app.innerHTML, /日语/);
 assert.match(app.innerHTML, /外语 → 中文/);
 assert.match(app.innerHTML, /中文 → 外语/);
 assert.doesNotMatch(app.innerHTML, /随机互译/);
 assert.doesNotMatch(app.innerHTML, /句子点读/);
 assert.doesNotMatch(app.innerHTML, /WORDS ONLY/i);
 assert.doesNotMatch(app.innerHTML, /英语单词/);
+assert.doesNotMatch(app.innerHTML, /看外语，想中文/);
+assert.doesNotMatch(app.innerHTML, /出现即发音/);
+assert.match(app.innerHTML, /tap-sentence-scroll/);
 assert.match(app.innerHTML, /工具与设置/);
 assert.doesNotMatch(app.innerHTML, /搜索单词或中文/);
 assert.doesNotMatch(app.innerHTML, /语音引擎/);
@@ -166,6 +168,10 @@ assert.match(app.innerHTML, /当前点读/);
 assert.equal(spoken.at(-1)?.text, "안녕하세요");
 
 click({ toggleTools: "open" });
+assert.match(app.innerHTML, /韩语/);
+assert.match(app.innerHTML, /法语/);
+assert.match(app.innerHTML, /日语/);
+assert.match(app.innerHTML, /浅色/);
 assert.match(app.innerHTML, /搜索单词或中文/);
 assert.match(app.innerHTML, /语音引擎/);
 assert.match(app.innerHTML, /Yuna · ko-KR/);
