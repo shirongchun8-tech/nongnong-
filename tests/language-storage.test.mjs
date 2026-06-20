@@ -20,11 +20,23 @@ import {
   importLanguageContent,
   loadLanguageContent,
   loadLanguageProgress,
+  normalizeLanguageWord,
   rateLanguageWord,
   saveLanguageContent,
   saveLanguageProgress,
   upsertLanguageWord,
 } from "../src/languageStorage.js";
+
+const normalizedStarterWord = normalizeLanguageWord({
+  id: "starter-ja-3",
+  languageId: "ja",
+  term: "食べ物",
+  chinese: "食物",
+  reading: "たべもの / tabemono",
+  baseTerm: "food",
+  source: "基础词",
+});
+assert.equal(normalizedStarterWord.baseTerm, "food");
 
 let content = saveLanguageContent({
   words: [

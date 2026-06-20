@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-current.js?v=current-entry-20260620";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-current.js?v=current-entry-20260620-storagefix";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,13 +11,13 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=current-entry-20260620";
+} from "./languageStorage.js?v=current-entry-20260620-storagefix";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=current-entry-20260620";
+} from "./languageSpeech.js?v=current-entry-20260620-storagefix";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";

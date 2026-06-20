@@ -123,9 +123,10 @@ function submit(values) {
 }
 
 assert.match(app.innerHTML, /英语/);
-assert.doesNotMatch(app.innerHTML, /韩语/);
-assert.doesNotMatch(app.innerHTML, /法语/);
-assert.doesNotMatch(app.innerHTML, /日语/);
+assert.match(app.innerHTML, /四语对照/);
+assert.match(app.innerHTML, /韩语/);
+assert.match(app.innerHTML, /法语/);
+assert.match(app.innerHTML, /日语/);
 assert.match(app.innerHTML, /外语 → 中文/);
 assert.match(app.innerHTML, /中文 → 外语/);
 assert.doesNotMatch(app.innerHTML, /随机互译/);

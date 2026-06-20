@@ -49,6 +49,7 @@ export function normalizeLanguageWord(item = {}) {
     forms: normalizeForms(item.forms, term),
     example: cleanText(item.example),
     source: cleanText(item.source) || "我的词库",
+    baseTerm: cleanText(item.baseTerm),
     updatedAt: cleanText(item.updatedAt) || new Date().toISOString(),
   };
 }
