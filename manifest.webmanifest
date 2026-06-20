@@ -3,7 +3,7 @@
   "short_name": "Word Studio",
   "description": "离线可用的多语言词卡学习工具",
   "lang": "zh-CN",
-  "start_url": "./languages.html?v=multilingual-comparison",
+  "start_url": "./languages-new.html?v=multilingual-comparison",
   "scope": "./",
   "display": "standalone",
   "background_color": "#111c24",

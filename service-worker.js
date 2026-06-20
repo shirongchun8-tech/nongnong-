@@ -4,6 +4,7 @@ const OFFLINE_ASSETS = [
   "./",
   "./index.html?v=multilingual-comparison",
   "./languages.html?v=multilingual-comparison",
+  "./languages-new.html?v=multilingual-comparison",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -55,7 +56,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./languages.html?v=multilingual-comparison");
+          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=multilingual-comparison");
           return undefined;
         });
     }),
