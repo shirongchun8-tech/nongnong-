@@ -174,3 +174,21 @@ export function getStarterWords(languageId) {
   const group = starterVocabulary.find((item) => item.languageId === languageId);
   return group?.words || [];
 }
+
+export function getVocabularyComparison(word) {
+  const baseTerm = word?.baseTerm;
+  if (!baseTerm || word?.source !== "1368词库") return null;
+  const comparisonOrder = ["en", "fr", "ja", "ko"];
+  return {
+    baseTerm,
+    items: comparisonOrder.map((languageId) => {
+      const language = getLanguage(languageId);
+      return {
+        languageId: language.id,
+        label: language.label,
+        nativeLabel: language.nativeLabel,
+        word: getStarterWords(language.id).find((item) => item.source === "1368词库" && item.baseTerm === baseTerm) || null,
+      };
+    }),
+  };
+}

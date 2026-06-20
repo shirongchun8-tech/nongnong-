@@ -11,6 +11,9 @@ const EPUB =
   "/Users/sralstly/Downloads/1368个单词就够了：实用篇 (王乐平) (z-library.sk, 1lib.sk, z-lib.sk).epub";
 const OUTFILE = path.join(ROOT, "src", "data", "word1368Data.js");
 const CACHE = path.join(ROOT, "scripts", ".translation-cache-1368.json");
+const JAPANESE_OVERRIDES = {
+  hold: { term: "つかむ", reading: "tsukamu" },
+};
 
 function unzipText(file) {
   return execFileSync("unzip", ["-p", EPUB, file], {
@@ -162,6 +165,40 @@ async function translate(term, target, cache) {
   return cache[key];
 }
 
+async function romanizeJapanese(japaneseTerm, cache) {
+  const key = `ja-rm:${japaneseTerm}`;
+  if (cache[key]) return cache[key];
+
+  const url = new URL("https://translate.googleapis.com/translate_a/single");
+  url.searchParams.set("client", "gtx");
+  url.searchParams.set("sl", "ja");
+  url.searchParams.set("tl", "en");
+  url.searchParams.append("dt", "t");
+  url.searchParams.append("dt", "rm");
+  url.searchParams.set("q", japaneseTerm);
+
+  let reading = "";
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const response = await fetchWithTimeout(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const romanized = (data?.[0] || []).find((part) => part?.[3])?.[3] || "";
+      reading = String(romanized).trim().toLowerCase();
+      break;
+    } catch (error) {
+      if (attempt === 3) {
+        console.warn(`Using empty romanization for ${japaneseTerm}: ${error.message}`);
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+      }
+    }
+  }
+
+  cache[key] = reading || japaneseTerm;
+  return cache[key];
+}
+
 async function translateAll(terms) {
   const cache = loadCache();
   const rows = [];
@@ -177,6 +214,12 @@ async function translateAll(terms) {
     const row = { term };
     for (const [target, key] of targets) {
       row[key] = await translate(term, target, cache);
+    }
+    if (JAPANESE_OVERRIDES[term]) {
+      row.ja = JAPANESE_OVERRIDES[term].term;
+      row.jaReading = JAPANESE_OVERRIDES[term].reading;
+    } else {
+      row.jaReading = await romanizeJapanese(row.ja, cache);
     }
     rows.push(row);
     if ((index + 1) % 50 === 0) {
@@ -199,8 +242,10 @@ function card(row, languageId, termKey, seenTerms) {
   seenTerms.add(term);
   return {
     term,
+    baseTerm: row.term,
     chinese: row.chinese,
     pos: "1368词库",
+    ...(languageId === "ja" ? { reading: row.jaReading } : {}),
     forms: languageId === "en" ? [row.term] : [term, row.term],
     example: languageId === "en" ? row.term : `${row.term} → ${term}`,
     source: "1368词库",

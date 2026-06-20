@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=pwa-offline";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=pwa-offline";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -375,6 +375,33 @@ function renderSearchResult(word) {
   `;
 }
 
+function renderVocabularyComparison(word) {
+  const comparison = getVocabularyComparison(word);
+  if (!comparison) return "";
+  return `
+    <section class="vocabulary-comparison" aria-label="四语对照">
+      <div class="comparison-title">
+        <span>四语对照</span>
+        <strong>${escapeHtml(comparison.baseTerm)}</strong>
+      </div>
+      <div class="comparison-grid">
+        ${comparison.items
+          .map((item) => {
+            if (!item.word) return "";
+            return `
+              <div class="comparison-item">
+                <span>${escapeHtml(item.label)}</span>
+                <strong lang="${escapeHtml(getLanguage(item.languageId).speechLang)}">${escapeHtml(item.word.term)}</strong>
+                ${item.word.reading ? `<small>${escapeHtml(item.word.reading)}</small>` : ""}
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
 function renderProgressPanel() {
   const stats = calculateLanguageStats(wordsForLanguage(), state.progress);
   return `
@@ -436,6 +463,7 @@ function renderStudyCard() {
               ${direction === "zhToForeign" ? renderTapTokens(answerMain, word.languageId) : escapeHtml(answerMain)}
             </p>
           </div>
+          ${renderVocabularyComparison(word)}
           ${renderTappedLookup()}
         </div>
         <div class="unified-controls">

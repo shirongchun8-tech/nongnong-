@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { getStarterWords } from "../src/languageData.js";
+import { getStarterWords, getVocabularyComparison } from "../src/languageData.js";
 
 const imported1368 = ["en", "fr", "ja", "ko"].map((languageId) => {
   const words = getStarterWords(languageId).filter((word) => word.source === "1368词库");
@@ -12,6 +12,21 @@ assert.equal(imported1368[0][0].chinese, imported1368[1][0].chinese);
 assert.notEqual(imported1368[0][0].term, imported1368[1][0].term);
 assert.notEqual(imported1368[0][0].term, imported1368[2][0].term);
 assert.notEqual(imported1368[0][0].term, imported1368[3][0].term);
+
+const importedJapanese = getStarterWords("ja").filter((word) => word.source === "1368词库");
+assert.equal(importedJapanese.filter((word) => word.reading).length, 1368);
+assert.ok(importedJapanese.every((word) => word.baseTerm));
+
+const holdComparison = getVocabularyComparison(imported1368[0][0]);
+assert.equal(holdComparison?.baseTerm, "hold");
+assert.deepEqual(
+  holdComparison.items.map((item) => item.languageId),
+  ["en", "fr", "ja", "ko"],
+);
+assert.ok(holdComparison.items.every((item) => item.word?.term));
+assert.ok(holdComparison.items.find((item) => item.languageId === "ja")?.word.reading);
+assert.equal(holdComparison.items.find((item) => item.languageId === "ja")?.word.term, "つかむ");
+assert.equal(holdComparison.items.find((item) => item.languageId === "ja")?.word.reading, "tsukamu");
 
 const frenchWords = getStarterWords("fr");
 const byTerm = new Map(frenchWords.map((word) => [word.term, word]));

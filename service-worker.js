@@ -1,4 +1,4 @@
-const CACHE_NAME = "language-word-studio-pwa-offline-v1";
+const CACHE_NAME = "language-word-studio-pwa-offline-v2";
 
 const OFFLINE_ASSETS = [
   "./",
