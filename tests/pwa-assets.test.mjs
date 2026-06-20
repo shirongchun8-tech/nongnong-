@@ -4,6 +4,7 @@ import fs from "node:fs";
 const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 const languagesHtml = fs.readFileSync("languages.html", "utf8");
 const indexHtml = fs.readFileSync("index.html", "utf8");
+const resetHtml = fs.readFileSync("reset.html", "utf8");
 const languageScript = fs.readFileSync("src/languages.js", "utf8");
 const serviceWorker = fs.readFileSync("service-worker.js", "utf8");
 const buildScript = fs.readFileSync("scripts/build.mjs", "utf8");
@@ -20,6 +21,11 @@ for (const html of [indexHtml, languagesHtml]) {
 }
 
 assert.match(languageScript, /serviceWorker\.register\("\.\/service-worker\.js"\)/);
+assert.match(resetHtml, /caches\.keys/);
+assert.match(resetHtml, /registration\.unregister/);
+assert.match(resetHtml, /languages\.html\?v=multilingual-comparison/);
+assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
+assert.match(serviceWorker, /fetch\(event\.request\)/);
 
 for (const asset of [
   "./languages.html?v=multilingual-comparison",

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111c24" />
+    <title>正在更新 Word Studio</title>
+    <style>
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        place-items: center;
+        background: #111c24;
+        color: #f5f8fa;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(420px, calc(100% - 40px));
+        padding: 28px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      a {
+        color: #81c4be;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>正在更新离线缓存</h1>
+      <p>请稍等，旧版缓存清理完成后会自动打开新版。</p>
+      <p><a href="./languages.html?v=multilingual-comparison">如果没有自动跳转，点这里打开新版。</a></p>
+    </main>
+    <script>
+      async function resetApp() {
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((key) => caches.delete(key)));
+        }
+        window.location.replace("./languages.html?v=multilingual-comparison");
+      }
+
+      resetApp().catch(() => {
+        window.location.href = "./languages.html?v=multilingual-comparison";
+      });
+    </script>
+  </body>
+</html>
