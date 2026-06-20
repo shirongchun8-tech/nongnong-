@@ -1,4 +1,4 @@
-import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data.js?v=pwa-offline";
+import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data.js?v=multilingual-comparison";
 
 export const languageCatalog = [
   { id: "en", label: "英语", nativeLabel: "English", speechLang: "en-US" },

@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=pwa-offline";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=multilingual-comparison";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,13 +11,13 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=pwa-offline";
+} from "./languageStorage.js?v=multilingual-comparison";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=pwa-offline";
+} from "./languageSpeech.js?v=multilingual-comparison";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";

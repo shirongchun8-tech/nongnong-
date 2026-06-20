@@ -1,5 +1,5 @@
-import { courseData } from "./data/courseData.js?v=pwa-offline";
-import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js?v=pwa-offline";
+import { courseData } from "./data/courseData.js?v=multilingual-comparison";
+import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js?v=multilingual-comparison";
 import {
   deleteCustomItem,
   exportCustomContent,
@@ -13,7 +13,7 @@ import {
   saveReview,
   saveWordProgress,
   upsertCustomItem,
-} from "./storage.js?v=pwa-offline";
+} from "./storage.js?v=multilingual-comparison";
 
 const app = document.querySelector("#app");
 const WORD_RE = /[A-Za-zÀ-ÿŒœÆæ]+(?:[-'][A-Za-zÀ-ÿŒœÆæ]+)*'?/g;
