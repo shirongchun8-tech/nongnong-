@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-fresh.js?v=fresh-comparison";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-fresh.js?v=starter-comparison";
 import {
   calculateLanguageStats,
   deleteLanguageWord,

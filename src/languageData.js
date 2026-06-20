@@ -166,6 +166,84 @@ export const starterVocabulary = [
   },
 ];
 
+const starterBaseTerms = {
+  en: {
+    hello: "hello",
+    "thank you": "thank you",
+    water: "water",
+    food: "food",
+    book: "book",
+    school: "school",
+    home: "home",
+    friend: "friend",
+    today: "today",
+    tomorrow: "tomorrow",
+    go: "go",
+    eat: "eat",
+    good: "good",
+    big: "big",
+    small: "small",
+  },
+  ko: {
+    안녕하세요: "hello",
+    감사합니다: "thank you",
+    물: "water",
+    음식: "food",
+    책: "book",
+    학교: "school",
+    집: "home",
+    친구: "friend",
+    오늘: "today",
+    내일: "tomorrow",
+    가다: "go",
+    먹다: "eat",
+    좋다: "good",
+    크다: "big",
+    작다: "small",
+  },
+  fr: {
+    bonjour: "hello",
+    merci: "thank you",
+    eau: "water",
+    nourriture: "food",
+    livre: "book",
+    école: "school",
+    maison: "home",
+    ami: "friend",
+    "aujourd'hui": "today",
+    demain: "tomorrow",
+    aller: "go",
+    manger: "eat",
+    bon: "good",
+    grand: "big",
+    petit: "small",
+  },
+  ja: {
+    こんにちは: "hello",
+    ありがとう: "thank you",
+    水: "water",
+    食べ物: "food",
+    本: "book",
+    学校: "school",
+    家: "home",
+    友達: "friend",
+    今日: "today",
+    明日: "tomorrow",
+    行く: "go",
+    食べる: "eat",
+    いい: "good",
+    大きい: "big",
+    小さい: "small",
+  },
+};
+
+for (const group of starterVocabulary) {
+  const baseTerms = starterBaseTerms[group.languageId] || {};
+  for (const word of group.words) {
+    word.baseTerm ||= baseTerms[word.term];
+  }
+}
+
 export function getLanguage(languageId) {
   return languageCatalog.find((language) => language.id === languageId) || languageCatalog[0];
 }
@@ -177,7 +255,7 @@ export function getStarterWords(languageId) {
 
 export function getVocabularyComparison(word) {
   const baseTerm = word?.baseTerm;
-  if (!baseTerm || word?.source !== "1368词库") return null;
+  if (!baseTerm) return null;
   const comparisonOrder = ["en", "fr", "ja", "ko"];
   return {
     baseTerm,
@@ -187,7 +265,7 @@ export function getVocabularyComparison(word) {
         languageId: language.id,
         label: language.label,
         nativeLabel: language.nativeLabel,
-        word: getStarterWords(language.id).find((item) => item.source === "1368词库" && item.baseTerm === baseTerm) || null,
+        word: getStarterWords(language.id).find((item) => item.baseTerm === baseTerm) || null,
       };
     }),
   };

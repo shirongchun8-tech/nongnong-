@@ -28,6 +28,18 @@ assert.ok(holdComparison.items.find((item) => item.languageId === "ja")?.word.re
 assert.equal(holdComparison.items.find((item) => item.languageId === "ja")?.word.term, "つかむ");
 assert.equal(holdComparison.items.find((item) => item.languageId === "ja")?.word.reading, "tsukamu");
 
+const foodJapanese = getStarterWords("ja").find((word) => word.term === "食べ物");
+const foodComparison = getVocabularyComparison(foodJapanese);
+assert.equal(foodComparison?.baseTerm, "food");
+assert.deepEqual(
+  foodComparison.items.map((item) => item.languageId),
+  ["en", "fr", "ja", "ko"],
+);
+assert.equal(foodComparison.items.find((item) => item.languageId === "en")?.word.term, "food");
+assert.equal(foodComparison.items.find((item) => item.languageId === "fr")?.word.term, "nourriture");
+assert.equal(foodComparison.items.find((item) => item.languageId === "ja")?.word.reading, "たべもの / tabemono");
+assert.equal(foodComparison.items.find((item) => item.languageId === "ko")?.word.term, "음식");
+
 const frenchWords = getStarterWords("fr");
 const byTerm = new Map(frenchWords.map((word) => [word.term, word]));
 
