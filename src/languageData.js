@@ -1,3 +1,5 @@
+import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data.js";
+
 export const languageCatalog = [
   { id: "en", label: "英语", nativeLabel: "English", speechLang: "en-US" },
   { id: "ko", label: "韩语", nativeLabel: "한국어", speechLang: "ko-KR" },
@@ -94,6 +96,7 @@ export const starterVocabulary = [
       { term: "good", chinese: "好的；好", pos: "形容词", reading: "/ɡʊd/", forms: ["good"], example: "That is a good idea." },
       { term: "big", chinese: "大的", pos: "形容词", reading: "/bɪɡ/", forms: ["big", "bigger"], example: "This room is big." },
       { term: "small", chinese: "小的", pos: "形容词", reading: "/smɔːl/", forms: ["small", "smaller"], example: "The bag is small." },
+      ...word1368English,
     ],
   },
   {
@@ -114,6 +117,7 @@ export const starterVocabulary = [
       { term: "좋다", chinese: "好", pos: "形容词", reading: "jota", forms: ["좋다", "좋아요"], example: "날씨가 좋아요." },
       { term: "크다", chinese: "大", pos: "形容词", reading: "keuda", forms: ["크다", "커요"], example: "방이 커요." },
       { term: "작다", chinese: "小", pos: "形容词", reading: "jakda", forms: ["작다", "작아요"], example: "가방이 작아요." },
+      ...word1368Korean,
     ],
   },
   {
@@ -136,6 +140,7 @@ export const starterVocabulary = [
       { term: "petit", chinese: "小的", pos: "形容词", reading: "/pəti/", forms: ["petit", "petite", "petits", "petites"], example: "J'ai un petit sac." },
       ...frenchCourseVocabulary,
       ...frenchDialogueCards,
+      ...word1368French,
     ],
   },
   {
@@ -156,6 +161,7 @@ export const starterVocabulary = [
       { term: "いい", chinese: "好的；好", pos: "形容词", reading: "ii", forms: ["いい", "良い"], example: "いい天気です。" },
       { term: "大きい", chinese: "大的", pos: "形容词", reading: "おおきい / ookii", forms: ["大きい", "おおきな"], example: "大きい部屋です。" },
       { term: "小さい", chinese: "小的", pos: "形容词", reading: "ちいさい / chiisai", forms: ["小さい", "小さな"], example: "小さいかばんです。" },
+      ...word1368Japanese,
     ],
   },
 ];

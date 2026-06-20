@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=unified-screen-redesign";
+import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=1368-vocabulary";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,13 +11,13 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=unified-screen-redesign";
+} from "./languageStorage.js?v=1368-vocabulary";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=unified-screen-redesign";
+} from "./languageSpeech.js?v=1368-vocabulary";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
