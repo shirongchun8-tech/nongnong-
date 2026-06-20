@@ -24,6 +24,9 @@ fs.mkdirSync(DIST, { recursive: true });
 for (const entry of fs.readdirSync(ROOT)) {
   if (entry.endsWith(".html")) copyRecursive(path.join(ROOT, entry), path.join(DIST, entry));
 }
+for (const entry of ["manifest.webmanifest", "service-worker.js", "icons"]) {
+  copyRecursive(path.join(ROOT, entry), path.join(DIST, entry));
+}
 copyRecursive(path.join(ROOT, "src"), path.join(DIST, "src"));
 fs.writeFileSync(path.join(DIST, ".nojekyll"), "", "utf8");
 console.log(`Built ${path.relative(ROOT, DIST)}`);

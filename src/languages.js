@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=1368-vocabulary";
+import { getLanguage, getStarterWords, languageCatalog } from "./languageData.js?v=pwa-offline";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
@@ -11,16 +11,25 @@ import {
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=1368-vocabulary";
+} from "./languageStorage.js?v=pwa-offline";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=1368-vocabulary";
+} from "./languageSpeech.js?v=pwa-offline";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
+
+function registerOfflineApp() {
+  if (typeof window === "undefined" || typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+
+registerOfflineApp();
 
 function loadTheme() {
   try {

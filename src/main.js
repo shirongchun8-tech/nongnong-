@@ -1,5 +1,5 @@
-import { courseData } from "./data/courseData.js?v=auto-pronounce";
-import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js";
+import { courseData } from "./data/courseData.js?v=pwa-offline";
+import { getSelectedVoiceName, getVoiceOptions, setSelectedVoiceName, speakFrench } from "./speech.js?v=pwa-offline";
 import {
   deleteCustomItem,
   exportCustomContent,
@@ -13,7 +13,7 @@ import {
   saveReview,
   saveWordProgress,
   upsertCustomItem,
-} from "./storage.js";
+} from "./storage.js?v=pwa-offline";
 
 const app = document.querySelector("#app");
 const WORD_RE = /[A-Za-zÀ-ÿŒœÆæ]+(?:[-'][A-Za-zÀ-ÿŒœÆæ]+)*'?/g;
@@ -21,6 +21,15 @@ const THEME_KEY = "french-study-tool-theme";
 const AUTO_SPEAK_KEY = "french-study-tool-auto-speak";
 let lastAutoSpokenWordKey = "";
 let autoSpeakTimer = null;
+
+function registerOfflineApp() {
+  if (typeof window === "undefined" || typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+
+registerOfflineApp();
 
 function loadTheme() {
   try {
