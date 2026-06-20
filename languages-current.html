@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111c24" />
+    <title>Language Word Studio Current</title>
+    <link rel="stylesheet" href="./src/styles.css?v=current-entry-20260620" />
+    <link rel="stylesheet" href="./src/languages.css?v=current-entry-20260620" />
+  </head>
+  <body>
+    <div id="language-app"></div>
+    <script type="module">
+      async function clearOldOfflineCache() {
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map((registration) => registration.unregister()));
+        }
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((key) => caches.delete(key)));
+        }
+      }
+
+      await clearOldOfflineCache().catch(() => {});
+      await import("./src/languages-current.js?v=current-entry-20260620");
+    </script>
+  </body>
+</html>
