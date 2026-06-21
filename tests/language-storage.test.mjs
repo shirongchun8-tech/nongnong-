@@ -15,7 +15,9 @@ global.localStorage = {
 
 import {
   calculateLanguageStats,
+  completeDailyLanguageWord,
   deleteLanguageWord,
+  ensureDailyLanguagePlan,
   exportLanguageContent,
   importLanguageContent,
   getLanguageCardStatus,
@@ -142,3 +144,85 @@ assert.deepEqual(statusCounts, {
   vague: 0,
   known: 1,
 });
+
+const planWords = [
+  { id: "w-known-due" },
+  { id: "w-known-fresh" },
+  { id: "w-unknown" },
+  { id: "w-vague" },
+  { id: "w-new-1" },
+  { id: "w-new-2" },
+  { id: "w-new-3" },
+];
+const planProgress = normalizePlanProgress({
+  cards: {
+    "w-known-due": {
+      seen: 2,
+      known: 2,
+      fuzzy: 0,
+      unknown: 0,
+      streak: 2,
+      box: 3,
+      status: "known",
+      nextReviewAt: "2026-06-11T00:00:00.000Z",
+    },
+    "w-known-fresh": {
+      seen: 2,
+      known: 2,
+      fuzzy: 0,
+      unknown: 0,
+      streak: 2,
+      box: 3,
+      status: "known",
+      nextReviewAt: "2026-06-20T00:00:00.000Z",
+    },
+    "w-unknown": { seen: 1, known: 0, fuzzy: 0, unknown: 1, streak: 0, box: 1, status: "unknown" },
+    "w-vague": { seen: 1, known: 0, fuzzy: 1, unknown: 0, streak: 0, box: 1, status: "vague" },
+  },
+});
+
+function normalizePlanProgress(progress) {
+  return saveLanguageProgress(progress);
+}
+
+const dailyPlan = ensureDailyLanguagePlan(planProgress, planWords, {
+  languageId: "en",
+  dateKey: "2026-06-12",
+  newLimit: 2,
+  reviewLimit: 3,
+  now: new Date("2026-06-12T12:00:00Z"),
+});
+assert.deepEqual(dailyPlan.newWordIds, ["w-new-1", "w-new-2"]);
+assert.deepEqual(dailyPlan.reviewWordIds, ["w-unknown", "w-vague", "w-known-due"]);
+assert.equal(dailyPlan.completedNewIds.length, 0);
+assert.equal(dailyPlan.completedReviewIds.length, 0);
+
+const sameDailyPlan = ensureDailyLanguagePlan(
+  {
+    ...planProgress,
+    dailyPlans: {
+      en: dailyPlan,
+    },
+  },
+  planWords,
+  {
+    languageId: "en",
+    dateKey: "2026-06-12",
+    newLimit: 1,
+    reviewLimit: 1,
+    now: new Date("2026-06-12T12:00:00Z"),
+  },
+);
+assert.deepEqual(sameDailyPlan.newWordIds, ["w-new-1", "w-new-2"]);
+assert.deepEqual(sameDailyPlan.reviewWordIds, ["w-unknown", "w-vague", "w-known-due"]);
+
+let completedPlanProgress = {
+  ...planProgress,
+  dailyPlans: {
+    en: dailyPlan,
+  },
+};
+completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "w-new-1");
+completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "w-unknown");
+assert.deepEqual(completedPlanProgress.dailyPlans.en.completedNewIds, ["w-new-1"]);
+assert.deepEqual(completedPlanProgress.dailyPlans.en.completedReviewIds, ["w-unknown"]);

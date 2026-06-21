@@ -17,6 +17,10 @@ const STATUS_LABELS = {
   vague: "模糊",
   known: "认识",
 };
+export const DEFAULT_DAILY_LANGUAGE_PLAN = {
+  newLimit: 20,
+  reviewLimit: 60,
+};
 
 function cleanText(value) {
   return String(value ?? "").trim();
@@ -152,7 +156,8 @@ export function normalizeLanguageProgress(progress = {}) {
     if (cleanText(wordId)) cards[wordId] = normalizeCardRecord(record);
   }
   const sessions = progress.sessions && typeof progress.sessions === "object" ? progress.sessions : {};
-  return { version: 1, cards, sessions };
+  const dailyPlans = normalizeDailyPlans(progress.dailyPlans);
+  return { version: 1, cards, sessions, dailyPlans };
 }
 
 export function loadLanguageProgress() {
@@ -176,6 +181,124 @@ function mergeLanguageProgress(current, incoming) {
     version: 1,
     cards: { ...normalizedCurrent.cards, ...normalizedIncoming.cards },
     sessions: { ...normalizedCurrent.sessions, ...normalizedIncoming.sessions },
+    dailyPlans: { ...normalizedCurrent.dailyPlans, ...normalizedIncoming.dailyPlans },
+  };
+}
+
+function cleanStringList(values) {
+  return [...new Set((Array.isArray(values) ? values : []).map(cleanText).filter(Boolean))];
+}
+
+function normalizeDailyPlan(plan = {}) {
+  return {
+    dateKey: cleanText(plan.dateKey),
+    languageId: normalizeLanguageId(plan.languageId),
+    newLimit: Number(plan.newLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.newLimit,
+    reviewLimit: Number(plan.reviewLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.reviewLimit,
+    newWordIds: cleanStringList(plan.newWordIds),
+    reviewWordIds: cleanStringList(plan.reviewWordIds),
+    completedNewIds: cleanStringList(plan.completedNewIds),
+    completedReviewIds: cleanStringList(plan.completedReviewIds),
+    updatedAt: cleanText(plan.updatedAt),
+  };
+}
+
+function normalizeDailyPlans(dailyPlans = {}) {
+  if (!dailyPlans || typeof dailyPlans !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(dailyPlans)
+      .map(([languageId, plan]) => [normalizeLanguageId(languageId), normalizeDailyPlan({ ...plan, languageId })])
+      .filter(([, plan]) => plan.dateKey),
+  );
+}
+
+export function languageDateKey(now = new Date()) {
+  return now.toISOString().slice(0, 10);
+}
+
+function byPlanPriority(progress, now = new Date()) {
+  return (left, right) => {
+    const leftRecord = progress.cards[left.id];
+    const rightRecord = progress.cards[right.id];
+    const priority = (word, record) => {
+      const status = getLanguageCardStatus(record);
+      if (status === "unknown") return 0;
+      if (status === "vague") return 1;
+      if (record && isLanguageReviewDue(record, now)) return 2;
+      if (status === "known") return 3;
+      return 4;
+    };
+    return priority(left, leftRecord) - priority(right, rightRecord);
+  };
+}
+
+export function ensureDailyLanguagePlan(progress, words, options = {}) {
+  const normalized = normalizeLanguageProgress(progress);
+  const languageId = normalizeLanguageId(options.languageId);
+  const dateKey = cleanText(options.dateKey) || languageDateKey(options.now || new Date());
+  const existing = normalized.dailyPlans[languageId];
+  if (existing?.dateKey === dateKey) return existing;
+
+  const newLimit = Number(options.newLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.newLimit;
+  const reviewLimit = Number(options.reviewLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.reviewLimit;
+  const now = options.now || new Date();
+  const reviewWords = words
+    .filter((word) => {
+      const record = normalized.cards[word.id];
+      const status = getLanguageCardStatus(record);
+      return status === "unknown" || status === "vague" || (status === "known" && isLanguageReviewDue(record, now));
+    })
+    .sort(byPlanPriority(normalized, now))
+    .slice(0, reviewLimit);
+  const reviewWordIds = new Set(reviewWords.map((word) => word.id));
+  const newWordIds = words
+    .filter((word) => !reviewWordIds.has(word.id) && getLanguageCardStatus(normalized.cards[word.id]) === "unlearned")
+    .slice(0, newLimit)
+    .map((word) => word.id);
+
+  return {
+    dateKey,
+    languageId,
+    newLimit,
+    reviewLimit,
+    newWordIds,
+    reviewWordIds: [...reviewWordIds],
+    completedNewIds: [],
+    completedReviewIds: [],
+    updatedAt: now.toISOString(),
+  };
+}
+
+export function saveDailyLanguagePlan(progress, languageId, plan) {
+  const normalized = normalizeLanguageProgress(progress);
+  normalized.dailyPlans[normalizeLanguageId(languageId)] = normalizeDailyPlan(plan);
+  return saveLanguageProgress(normalized);
+}
+
+export function completeDailyLanguageWord(progress, languageId, wordId) {
+  const normalized = normalizeLanguageProgress(progress);
+  const cleanLanguageId = normalizeLanguageId(languageId);
+  const plan = normalized.dailyPlans[cleanLanguageId];
+  if (!plan) return normalized;
+  const cleanWordId = cleanText(wordId);
+  const add = (values) => (values.includes(cleanWordId) ? values : [...values, cleanWordId]);
+  if (plan.newWordIds.includes(cleanWordId)) plan.completedNewIds = add(plan.completedNewIds);
+  if (plan.reviewWordIds.includes(cleanWordId)) plan.completedReviewIds = add(plan.completedReviewIds);
+  normalized.dailyPlans[cleanLanguageId] = normalizeDailyPlan({ ...plan, updatedAt: new Date().toISOString() });
+  return saveLanguageProgress(normalized);
+}
+
+export function getDailyLanguagePlanStats(plan) {
+  const normalized = normalizeDailyPlan(plan);
+  const newDone = normalized.completedNewIds.filter((id) => normalized.newWordIds.includes(id)).length;
+  const reviewDone = normalized.completedReviewIds.filter((id) => normalized.reviewWordIds.includes(id)).length;
+  return {
+    newDone,
+    newTotal: normalized.newWordIds.length,
+    reviewDone,
+    reviewTotal: normalized.reviewWordIds.length,
+    totalDone: newDone + reviewDone,
+    total: normalized.newWordIds.length + normalized.reviewWordIds.length,
   };
 }
 

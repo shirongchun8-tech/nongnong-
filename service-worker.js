@@ -1,24 +1,24 @@
-const CACHE_NAME = "language-word-studio-visual-status-study-v3";
+const CACHE_NAME = "language-word-studio-daily-plan-study-v3";
 
 const OFFLINE_ASSETS = [
   "./",
-  "./index.html?v=visual-status-study",
-  "./languages.html?v=visual-status-study",
-  "./languages-new.html?v=visual-status-study",
+  "./index.html?v=daily-plan-study",
+  "./languages.html?v=daily-plan-study",
+  "./languages-new.html?v=daily-plan-study",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./src/styles.css?v=visual-status-study",
-  "./src/languages.css?v=visual-status-study",
-  "./src/main.js?v=visual-status-study",
-  "./src/languages.js?v=visual-status-study",
-  "./src/languageData.js?v=visual-status-study",
-  "./src/languageStorage.js?v=visual-status-study",
-  "./src/languageSpeech.js?v=visual-status-study",
-  "./src/storage.js?v=visual-status-study",
-  "./src/speech.js?v=visual-status-study",
-  "./src/data/courseData.js?v=visual-status-study",
-  "./src/data/word1368Data.js?v=visual-status-study",
+  "./src/styles.css?v=daily-plan-study",
+  "./src/languages.css?v=daily-plan-study",
+  "./src/main.js?v=daily-plan-study",
+  "./src/languages.js?v=daily-plan-study",
+  "./src/languageData.js?v=daily-plan-study",
+  "./src/languageStorage.js?v=daily-plan-study",
+  "./src/languageSpeech.js?v=daily-plan-study",
+  "./src/storage.js?v=daily-plan-study",
+  "./src/speech.js?v=daily-plan-study",
+  "./src/data/courseData.js?v=daily-plan-study",
+  "./src/data/word1368Data.js?v=daily-plan-study",
 ];
 
 self.addEventListener("install", (event) => {
@@ -42,7 +42,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=visual-status-study")));
+    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=daily-plan-study")));
     return;
   }
   event.respondWith(
@@ -56,7 +56,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=visual-status-study");
+          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=daily-plan-study");
           return undefined;
         });
     }),

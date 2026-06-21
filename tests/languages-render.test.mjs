@@ -124,6 +124,10 @@ function submit(values) {
 
 assert.match(app.innerHTML, /英语/);
 assert.match(app.innerHTML, /智能练习/);
+assert.match(app.innerHTML, /今日计划/);
+assert.match(app.innerHTML, /新词 0 \/ 20/);
+assert.match(app.innerHTML, /复习 0 \/ 0/);
+assert.match(app.innerHTML, /总进度 0 \/ 20/);
 assert.match(app.innerHTML, /状态：未学习/);
 assert.doesNotMatch(app.innerHTML, /四语对照/);
 assert.doesNotMatch(app.innerHTML, /韩语/);
@@ -158,6 +162,9 @@ assert.match(storage["multi-language-word-studio-progress"], /starter-en-0/);
 assert.match(app.innerHTML, /已记录：认识/);
 assert.equal(spoken.at(-1)?.text, "thank you");
 assert.match(storage["multi-language-word-studio-progress"], /"status":"known"/);
+assert.match(storage["multi-language-word-studio-progress"], /"completedNewIds":\["starter-en-0"\]/);
+assert.match(app.innerHTML, /新词 1 \/ 20/);
+assert.match(app.innerHTML, /总进度 1 \/ 20/);
 
 click({ language: "ko" });
 assert.match(app.innerHTML, /안녕하세요/);

@@ -1,9 +1,12 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=visual-status-study";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=daily-plan-study";
 import {
   calculateLanguageStats,
+  completeDailyLanguageWord,
   deleteLanguageWord,
+  ensureDailyLanguagePlan,
   exportLanguageContent,
   getLanguageCardStatus,
+  getDailyLanguagePlanStats,
   importLanguageContent,
   isLanguageReviewDue,
   languageStatusLabel,
@@ -11,15 +14,16 @@ import {
   loadLanguageProgress,
   normalizeLanguageWord,
   rateLanguageWord,
+  saveDailyLanguagePlan,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=visual-status-study";
+} from "./languageStorage.js?v=daily-plan-study";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=visual-status-study";
+} from "./languageSpeech.js?v=daily-plan-study";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
@@ -128,6 +132,23 @@ function ratingLabel(rating) {
 
 function wordStatus(word) {
   return getLanguageCardStatus(state.progress.cards[word.id]);
+}
+
+function ensureTodayPlan(languageId = state.languageId) {
+  const plan = ensureDailyLanguagePlan(state.progress, wordsForLanguage(languageId), { languageId });
+  const existing = state.progress.dailyPlans?.[languageId];
+  if (existing?.dateKey !== plan.dateKey) {
+    state.progress = saveDailyLanguagePlan(state.progress, languageId, plan);
+  }
+  return state.progress.dailyPlans?.[languageId] || plan;
+}
+
+function currentDailyPlan() {
+  return ensureTodayPlan();
+}
+
+function dailyPlanStats() {
+  return getDailyLanguagePlanStats(currentDailyPlan());
 }
 
 function persistSession() {
@@ -265,6 +286,11 @@ function wordsForQueue() {
   const words = wordsForLanguage();
   if (state.queue === "all") return words;
   if (["unlearned", "unknown", "vague", "known"].includes(state.queue)) return words.filter((word) => wordStatus(word) === state.queue);
+  const plan = currentDailyPlan();
+  const completed = new Set([...plan.completedNewIds, ...plan.completedReviewIds]);
+  const plannedIds = [...plan.reviewWordIds, ...plan.newWordIds].filter((id) => !completed.has(id));
+  const planned = plannedIds.map((id) => words.find((word) => word.id === id)).filter(Boolean);
+  if (planned.length) return planned;
   const known = words.filter((word) => wordStatus(word) === "known");
   if (state.forceKnownReview && known.length) return known;
   const unknown = words.filter((word) => wordStatus(word) === "unknown");
@@ -425,6 +451,18 @@ function renderProgressPanel() {
   `;
 }
 
+function renderDailyPlanPanel() {
+  const stats = dailyPlanStats();
+  return `
+    <section class="daily-plan-strip" aria-label="今日计划">
+      <strong>今日计划</strong>
+      <span>新词 ${stats.newDone} / ${stats.newTotal}</span>
+      <span>复习 ${stats.reviewDone} / ${stats.reviewTotal}</span>
+      <span>总进度 ${stats.totalDone} / ${stats.total}</span>
+    </section>
+  `;
+}
+
 function renderStudyCard() {
   const words = studyWords();
   const word = currentWord();
@@ -470,10 +508,7 @@ function renderStudyCard() {
           </div>
         </div>
       </article>
-      <div class="word-deck-actions">
-        <button data-prev-word>上一张</button>
-        <button data-next-word>下一张</button>
-      </div>
+      ${renderDailyPlanPanel()}
       <div class="word-actions language-rate-actions">
         <button data-rate-language="${escapeHtml(word.id)}:unknown">不认识</button>
         <button data-rate-language="${escapeHtml(word.id)}:vague">模糊</button>
@@ -688,29 +723,15 @@ app.addEventListener("click", (event) => {
     localStorage.setItem(THEME_KEY, state.theme);
     render();
   }
-  if (target.dataset.prevWord !== undefined) {
-    const words = studyWords();
-    state.cardIndex = (state.cardIndex - 1 + words.length) % Math.max(words.length, 1);
-    state.flipped = false;
-    state.tappedWord = null;
-    persistSession();
-    render();
-  }
-  if (target.dataset.nextWord !== undefined) {
-    const words = studyWords();
-    state.cardIndex = (state.cardIndex + 1) % Math.max(words.length, 1);
-    state.flipped = false;
-    state.tappedWord = null;
-    persistSession();
-    render();
-  }
   if (target.dataset.flipWord !== undefined) {
     state.flipped = !state.flipped;
     render();
   }
   if (target.dataset.rateLanguage) {
     const [wordId, rating] = target.dataset.rateLanguage.split(":");
+    ensureTodayPlan();
     state.progress = rateLanguageWord(state.progress, wordId, rating);
+    state.progress = completeDailyLanguageWord(state.progress, state.languageId, wordId);
     state.message = `已记录：${ratingLabel(rating)}。`;
     state.practiceCount += 1;
     state.forceKnownReview = state.queue === "smart" && state.practiceCount > 0 && state.practiceCount % 20 === 0;
