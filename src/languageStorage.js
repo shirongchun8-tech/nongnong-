@@ -11,6 +11,12 @@ const BOX_DELAYS = {
   5: 15 * DAY,
   6: 30 * DAY,
 };
+const STATUS_LABELS = {
+  unlearned: "未学习",
+  unknown: "不认识",
+  vague: "模糊",
+  known: "认识",
+};
 
 function cleanText(value) {
   return String(value ?? "").trim();
@@ -29,6 +35,15 @@ function normalizeForms(forms, term) {
   const unique = values.filter(Boolean);
   if (term && !unique.includes(term)) unique.unshift(term);
   return [...new Set(unique)];
+}
+
+function normalizeCardStatus(status, lastRating = "") {
+  if (status === "known" || status === "unknown" || status === "vague" || status === "unlearned") return status;
+  if (status === "fuzzy") return "vague";
+  if (lastRating === "known") return "known";
+  if (lastRating === "unknown") return "unknown";
+  if (lastRating === "fuzzy" || lastRating === "vague") return "vague";
+  return "unlearned";
 }
 
 function createWordId(languageId) {
@@ -115,6 +130,7 @@ export function importLanguageContent(json, current = loadLanguageContent()) {
 }
 
 function normalizeCardRecord(record = {}) {
+  const lastRating = cleanText(record.lastRating);
   return {
     seen: Number(record.seen) || 0,
     known: Number(record.known) || 0,
@@ -122,8 +138,8 @@ function normalizeCardRecord(record = {}) {
     unknown: Number(record.unknown) || 0,
     streak: Number(record.streak) || 0,
     box: Math.max(1, Math.min(Number(record.box) || 1, 6)),
-    status: ["new", "learning", "review"].includes(record.status) ? record.status : "learning",
-    lastRating: cleanText(record.lastRating),
+    status: normalizeCardStatus(record.status, lastRating),
+    lastRating,
     updatedAt: cleanText(record.updatedAt),
     nextReviewAt: cleanText(record.nextReviewAt),
   };
@@ -165,14 +181,14 @@ function mergeLanguageProgress(current, incoming) {
 
 export function nextLanguageReviewDelay(rating, nextBox = 1) {
   if (rating === "unknown") return 10 * MINUTE;
-  if (rating === "fuzzy") return 6 * HOUR;
+  if (rating === "fuzzy" || rating === "vague") return 6 * HOUR;
   return BOX_DELAYS[Math.max(1, Math.min(nextBox, 6))] || DAY;
 }
 
 export function rateLanguageWord(progress, wordId, rating, now = new Date()) {
   const normalized = normalizeLanguageProgress(progress);
   const current = normalized.cards[wordId] || normalizeCardRecord({ status: "new", box: 1 });
-  const cleanRating = ["known", "fuzzy", "unknown"].includes(rating) ? rating : "fuzzy";
+  const cleanRating = rating === "fuzzy" ? "vague" : ["known", "vague", "unknown"].includes(rating) ? rating : "vague";
   const nextBox =
     cleanRating === "known"
       ? Math.min((current.box || 1) + 1, 6)
@@ -180,22 +196,29 @@ export function rateLanguageWord(progress, wordId, rating, now = new Date()) {
         ? 1
         : Math.max(current.box || 1, 1);
   const streak = cleanRating === "known" ? (current.streak || 0) + 1 : 0;
-  const status = cleanRating === "known" && nextBox >= 3 ? "review" : "learning";
   const nextReviewAt = new Date(now.getTime() + nextLanguageReviewDelay(cleanRating, nextBox)).toISOString();
   normalized.cards[wordId] = {
     ...current,
     seen: current.seen + 1,
     known: current.known + (cleanRating === "known" ? 1 : 0),
-    fuzzy: current.fuzzy + (cleanRating === "fuzzy" ? 1 : 0),
+    fuzzy: current.fuzzy + (cleanRating === "vague" ? 1 : 0),
     unknown: current.unknown + (cleanRating === "unknown" ? 1 : 0),
     streak,
     box: nextBox,
-    status,
+    status: cleanRating,
     lastRating: cleanRating,
     updatedAt: now.toISOString(),
     nextReviewAt,
   };
   return saveLanguageProgress(normalized);
+}
+
+export function getLanguageCardStatus(record) {
+  return record ? normalizeCardStatus(record.status, record.lastRating) : "unlearned";
+}
+
+export function languageStatusLabel(status) {
+  return STATUS_LABELS[normalizeCardStatus(status)] || STATUS_LABELS.unlearned;
 }
 
 export function isLanguageReviewDue(record, now = new Date()) {
@@ -208,9 +231,10 @@ export function calculateLanguageStats(words, progress, now = new Date()) {
   const records = words.map((word) => normalized.cards[word.id]);
   const newCount = records.filter((record) => !record).length;
   const due = records.filter((record) => record && isLanguageReviewDue(record, now)).length;
-  const mastered = records.filter((record) => record?.status === "review" && (record.box || 1) >= 3).length;
-  const learning = records.filter((record) => record?.status === "learning").length;
+  const mastered = records.filter((record) => getLanguageCardStatus(record) === "known").length;
+  const learning = records.filter((record) => ["unknown", "vague"].includes(getLanguageCardStatus(record))).length;
   const difficult = records.filter((record) => record && ((record.fuzzy || 0) + (record.unknown || 0)) > (record.known || 0)).length;
+  const statusCounts = getLanguageStatusCounts(words, normalized);
   return {
     total: words.length,
     due,
@@ -218,5 +242,21 @@ export function calculateLanguageStats(words, progress, now = new Date()) {
     learning,
     mastered,
     difficult,
+    ...statusCounts,
   };
+}
+
+export function getLanguageStatusCounts(words, progress) {
+  const normalized = normalizeLanguageProgress(progress);
+  const counts = {
+    total: words.length,
+    unlearned: 0,
+    unknown: 0,
+    vague: 0,
+    known: 0,
+  };
+  for (const word of words) {
+    counts[getLanguageCardStatus(normalized.cards[word.id])] += 1;
+  }
+  return counts;
 }

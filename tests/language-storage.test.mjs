@@ -18,6 +18,8 @@ import {
   deleteLanguageWord,
   exportLanguageContent,
   importLanguageContent,
+  getLanguageCardStatus,
+  getLanguageStatusCounts,
   loadLanguageContent,
   loadLanguageProgress,
   normalizeLanguageWord,
@@ -90,24 +92,26 @@ assert.equal(loadLanguageContent().words[0].term, "水");
 
 let progress = saveLanguageProgress({ cards: {}, sessions: {} });
 progress = rateLanguageWord(progress, "starter-en-0", "unknown", new Date("2026-06-12T00:00:00Z"));
-assert.equal(progress.cards["starter-en-0"].status, "learning");
+assert.equal(progress.cards["starter-en-0"].status, "unknown");
 assert.equal(progress.cards["starter-en-0"].box, 1);
 assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-12T00:10:00.000Z");
+assert.equal(getLanguageCardStatus(progress.cards["starter-en-0"]), "unknown");
 
-progress = rateLanguageWord(progress, "starter-en-0", "fuzzy", new Date("2026-06-12T00:20:00Z"));
-assert.equal(progress.cards["starter-en-0"].status, "learning");
+progress = rateLanguageWord(progress, "starter-en-0", "vague", new Date("2026-06-12T00:20:00Z"));
+assert.equal(progress.cards["starter-en-0"].status, "vague");
 assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-12T06:20:00.000Z");
+assert.equal(getLanguageCardStatus(progress.cards["starter-en-0"]), "vague");
 
 progress = rateLanguageWord(progress, "starter-en-0", "known", new Date("2026-06-13T00:00:00Z"));
-assert.equal(progress.cards["starter-en-0"].status, "learning");
+assert.equal(progress.cards["starter-en-0"].status, "known");
 assert.equal(progress.cards["starter-en-0"].box, 2);
 assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-14T00:00:00.000Z");
 
 progress = rateLanguageWord(progress, "starter-en-0", "known", new Date("2026-06-14T00:00:00Z"));
-assert.equal(progress.cards["starter-en-0"].status, "review");
+assert.equal(progress.cards["starter-en-0"].status, "known");
 assert.equal(progress.cards["starter-en-0"].box, 3);
 assert.equal(progress.cards["starter-en-0"].nextReviewAt, "2026-06-17T00:00:00.000Z");
-assert.equal(loadLanguageProgress().cards["starter-en-0"].status, "review");
+assert.equal(loadLanguageProgress().cards["starter-en-0"].status, "known");
 
 const stats = calculateLanguageStats(
   [
@@ -121,3 +125,20 @@ assert.equal(stats.total, 2);
 assert.equal(stats.due, 1);
 assert.equal(stats.newCount, 1);
 assert.equal(stats.mastered, 1);
+assert.equal(stats.unlearned, 1);
+assert.equal(stats.known, 1);
+
+const statusCounts = getLanguageStatusCounts(
+  [
+    { id: "starter-en-0" },
+    { id: "starter-en-1" },
+  ],
+  progress,
+);
+assert.deepEqual(statusCounts, {
+  total: 2,
+  unlearned: 1,
+  unknown: 0,
+  vague: 0,
+  known: 1,
+});

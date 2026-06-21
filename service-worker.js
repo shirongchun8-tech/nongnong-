@@ -1,24 +1,24 @@
-const CACHE_NAME = "language-word-studio-multilingual-comparison-v3";
+const CACHE_NAME = "language-word-studio-visual-status-study-v3";
 
 const OFFLINE_ASSETS = [
   "./",
-  "./index.html?v=multilingual-comparison",
-  "./languages.html?v=multilingual-comparison",
-  "./languages-new.html?v=multilingual-comparison",
+  "./index.html?v=visual-status-study",
+  "./languages.html?v=visual-status-study",
+  "./languages-new.html?v=visual-status-study",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./src/styles.css?v=multilingual-comparison",
-  "./src/languages.css?v=multilingual-comparison",
-  "./src/main.js?v=multilingual-comparison",
-  "./src/languages.js?v=multilingual-comparison",
-  "./src/languageData.js?v=multilingual-comparison",
-  "./src/languageStorage.js?v=multilingual-comparison",
-  "./src/languageSpeech.js?v=multilingual-comparison",
-  "./src/storage.js?v=multilingual-comparison",
-  "./src/speech.js?v=multilingual-comparison",
-  "./src/data/courseData.js?v=multilingual-comparison",
-  "./src/data/word1368Data.js?v=multilingual-comparison",
+  "./src/styles.css?v=visual-status-study",
+  "./src/languages.css?v=visual-status-study",
+  "./src/main.js?v=visual-status-study",
+  "./src/languages.js?v=visual-status-study",
+  "./src/languageData.js?v=visual-status-study",
+  "./src/languageStorage.js?v=visual-status-study",
+  "./src/languageSpeech.js?v=visual-status-study",
+  "./src/storage.js?v=visual-status-study",
+  "./src/speech.js?v=visual-status-study",
+  "./src/data/courseData.js?v=visual-status-study",
+  "./src/data/word1368Data.js?v=visual-status-study",
 ];
 
 self.addEventListener("install", (event) => {
@@ -42,7 +42,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=multilingual-comparison")));
+    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=visual-status-study")));
     return;
   }
   event.respondWith(
@@ -56,7 +56,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=multilingual-comparison");
+          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=visual-status-study");
           return undefined;
         });
     }),

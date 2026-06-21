@@ -123,12 +123,14 @@ function submit(values) {
 }
 
 assert.match(app.innerHTML, /英语/);
-assert.match(app.innerHTML, /四语对照/);
-assert.match(app.innerHTML, /韩语/);
-assert.match(app.innerHTML, /法语/);
-assert.match(app.innerHTML, /日语/);
-assert.match(app.innerHTML, /外语 → 中文/);
-assert.match(app.innerHTML, /中文 → 外语/);
+assert.match(app.innerHTML, /智能练习/);
+assert.match(app.innerHTML, /状态：未学习/);
+assert.doesNotMatch(app.innerHTML, /四语对照/);
+assert.doesNotMatch(app.innerHTML, /韩语/);
+assert.doesNotMatch(app.innerHTML, /法语/);
+assert.doesNotMatch(app.innerHTML, /日语/);
+assert.doesNotMatch(app.innerHTML, /外语 → 中文/);
+assert.doesNotMatch(app.innerHTML, /中文 → 外语/);
 assert.doesNotMatch(app.innerHTML, /随机互译/);
 assert.doesNotMatch(app.innerHTML, /句子点读/);
 assert.doesNotMatch(app.innerHTML, /WORDS ONLY/i);
@@ -139,13 +141,14 @@ assert.match(app.innerHTML, /tap-sentence-scroll/);
 assert.match(app.innerHTML, /工具与设置/);
 assert.doesNotMatch(app.innerHTML, /搜索单词或中文/);
 assert.doesNotMatch(app.innerHTML, /语音引擎/);
-assert.match(app.innerHTML, /今日复习/);
+assert.match(app.innerHTML, /未学习/);
 assert.match(app.innerHTML, /不认识/);
 assert.match(app.innerHTML, /模糊/);
 assert.match(app.innerHTML, /认识/);
 assert.match(app.innerHTML, /data-tap-word="hello"/);
-assert.match(app.innerHTML, /data-speech-speed="normal"/);
-assert.match(app.innerHTML, /data-speak-full="hello"/);
+assert.match(app.innerHTML, /显示答案/);
+assert.doesNotMatch(app.innerHTML, /data-speech-speed="normal"/);
+assert.doesNotMatch(app.innerHTML, /data-speak-full="hello"/);
 assert.match(app.innerHTML, /管理我的词库/);
 assert.doesNotMatch(app.innerHTML, /name="term"/);
 assert.equal(spoken[0]?.text, "hello");
@@ -154,14 +157,16 @@ click({ rateLanguage: "starter-en-0:known" });
 assert.match(storage["multi-language-word-studio-progress"], /starter-en-0/);
 assert.match(app.innerHTML, /已记录：认识/);
 assert.equal(spoken.at(-1)?.text, "thank you");
+assert.match(storage["multi-language-word-studio-progress"], /"status":"known"/);
 
 click({ language: "ko" });
 assert.match(app.innerHTML, /안녕하세요/);
 assert.match(app.innerHTML, /韩语/);
 assert.equal(spoken.at(-1)?.text, "안녕하세요");
 
-click({ mode: "zhToForeign" });
-assert.match(app.innerHTML, /中文 → 外语/);
+click({ flipWord: "" });
+assert.match(app.innerHTML, /四语对照/);
+assert.match(app.innerHTML, /隐藏答案/);
 assert.equal(spoken.at(-1)?.text, "안녕하세요");
 
 click({ tapWord: "안녕하세요", tapWordLanguage: "ko" });
@@ -177,9 +182,9 @@ assert.match(app.innerHTML, /搜索单词或中文/);
 assert.match(app.innerHTML, /语音引擎/);
 assert.match(app.innerHTML, /Yuna · ko-KR/);
 assert.match(app.innerHTML, /试听/);
-assert.match(app.innerHTML, /学新词/);
-assert.match(app.innerHTML, /只看错词/);
-assert.match(app.innerHTML, /今日待复习/);
+assert.match(app.innerHTML, /未学习/);
+assert.match(app.innerHTML, /不认识/);
+assert.match(app.innerHTML, /总词数/);
 
 input("water");
 assert.match(app.innerHTML, /water/);

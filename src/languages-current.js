@@ -1,23 +1,25 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-current.js?v=current-entry-20260620-storagefix";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-current.js?v=visual-status-study";
 import {
   calculateLanguageStats,
   deleteLanguageWord,
   exportLanguageContent,
+  getLanguageCardStatus,
   importLanguageContent,
   isLanguageReviewDue,
+  languageStatusLabel,
   loadLanguageContent,
   loadLanguageProgress,
   normalizeLanguageWord,
   rateLanguageWord,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=current-entry-20260620-storagefix";
+} from "./languageStorage.js?v=visual-status-study";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=current-entry-20260620-storagefix";
+} from "./languageSpeech.js?v=visual-status-study";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
@@ -29,7 +31,7 @@ function registerOfflineApp() {
   });
 }
 
-
+registerOfflineApp();
 
 function loadTheme() {
   try {
@@ -46,10 +48,11 @@ const initialSession = initialProgress.sessions?.active || {};
 
 const state = {
   languageId: initialSession.languageId || "en",
-  mode: initialSession.mode === "zhToForeign" ? "zhToForeign" : "foreignToZh",
-  queue: initialSession.queue || "due",
+  queue: initialSession.queue || "smart",
   cardIndex: Number(initialSession.cardIndex) || 0,
-  flipped: true,
+  flipped: false,
+  practiceCount: Number(initialSession.practiceCount) || 0,
+  forceKnownReview: Boolean(initialSession.forceKnownReview),
   search: "",
   editingWordId: null,
   editorOpen: false,
@@ -106,27 +109,25 @@ function currentLanguage() {
   return getLanguage(state.languageId);
 }
 
-function modeLabel(mode = state.mode) {
-  const labels = {
-    foreignToZh: "外语 → 中文",
-    zhToForeign: "中文 → 外语",
-  };
-  return labels[mode] || labels.foreignToZh;
-}
-
 function queueLabel(queue = state.queue) {
   const labels = {
-    due: "今日复习",
-    new: "学新词",
-    difficult: "只看错词",
+    smart: "智能练习",
     all: "全部词库",
+    unlearned: "未学习",
+    unknown: "不认识",
+    vague: "模糊",
+    known: "认识",
   };
-  return labels[queue] || labels.due;
+  return labels[queue] || labels.smart;
 }
 
 function ratingLabel(rating) {
-  const labels = { unknown: "不认识", fuzzy: "模糊", known: "认识" };
+  const labels = { unknown: "不认识", vague: "模糊", fuzzy: "模糊", known: "认识" };
   return labels[rating] || "模糊";
+}
+
+function wordStatus(word) {
+  return getLanguageCardStatus(state.progress.cards[word.id]);
 }
 
 function persistSession() {
@@ -136,17 +137,14 @@ function persistSession() {
       ...(state.progress.sessions || {}),
       active: {
         languageId: state.languageId,
-        mode: state.mode,
         queue: state.queue,
         cardIndex: state.cardIndex,
+        practiceCount: state.practiceCount,
+        forceKnownReview: state.forceKnownReview,
         updatedAt: new Date().toISOString(),
       },
     },
   });
-}
-
-function activeDirection() {
-  return state.mode;
 }
 
 function speechOptions() {
@@ -252,13 +250,11 @@ function searchResults() {
 }
 
 function isNewWord(word) {
-  return !state.progress.cards[word.id];
+  return wordStatus(word) === "unlearned";
 }
 
 function isDifficultWord(word) {
-  const record = state.progress.cards[word.id];
-  if (!record) return false;
-  return record.lastRating === "unknown" || record.lastRating === "fuzzy" || (record.fuzzy || 0) + (record.unknown || 0) > (record.known || 0);
+  return ["unknown", "vague"].includes(wordStatus(word));
 }
 
 function dueWords(words) {
@@ -267,13 +263,15 @@ function dueWords(words) {
 
 function wordsForQueue() {
   const words = wordsForLanguage();
-  if (state.queue === "new") return words.filter(isNewWord);
-  if (state.queue === "difficult") return words.filter(isDifficultWord);
   if (state.queue === "all") return words;
-  const due = dueWords(words);
-  if (due.length) return due;
-  const fresh = words.filter(isNewWord);
-  return fresh.length ? fresh : words;
+  if (["unlearned", "unknown", "vague", "known"].includes(state.queue)) return words.filter((word) => wordStatus(word) === state.queue);
+  const known = words.filter((word) => wordStatus(word) === "known");
+  if (state.forceKnownReview && known.length) return known;
+  const unknown = words.filter((word) => wordStatus(word) === "unknown");
+  const vague = words.filter((word) => wordStatus(word) === "vague");
+  const unlearned = words.filter((word) => wordStatus(word) === "unlearned");
+  const dueKnown = dueWords(known);
+  return [...unknown, ...vague, ...unlearned, ...dueKnown, ...known];
 }
 
 function studyWords() {
@@ -407,21 +405,22 @@ function renderProgressPanel() {
   return `
     <section class="panel language-progress-panel">
       <div class="section-title">
-        <h2>今日任务</h2>
+        <h2>状态统计</h2>
         <span>${queueLabel()}</span>
       </div>
       <div class="language-stats-grid">
         <div class="language-stat"><strong>${stats.total}</strong><span>总词数</span></div>
-        <div class="language-stat"><strong>${stats.due}</strong><span>今日待复习</span></div>
-        <div class="language-stat"><strong>${stats.newCount}</strong><span>新词</span></div>
-        <div class="language-stat"><strong>${stats.mastered}</strong><span>已掌握</span></div>
+        <div class="language-stat status-unlearned"><strong>${stats.unlearned}</strong><span>未学习</span></div>
+        <div class="language-stat status-unknown"><strong>${stats.unknown}</strong><span>不认识</span></div>
+        <div class="language-stat status-vague"><strong>${stats.vague}</strong><span>模糊</span></div>
+        <div class="language-stat status-known"><strong>${stats.known}</strong><span>认识</span></div>
       </div>
       <div class="mode-tabs language-queue-tabs">
-        ${["due", "new", "difficult", "all"]
+        ${["smart", "all", "unlearned", "unknown", "vague", "known"]
           .map((queue) => `<button class="${state.queue === queue ? "active" : ""}" data-queue="${queue}">${queueLabel(queue)}</button>`)
           .join("")}
       </div>
-      <p class="review-note">不认识：10 分钟后再来；模糊：6 小时后再来；连续认识会进入 1 天、3 天、7 天、15 天、30 天的长期复习。</p>
+      <p class="review-note">智能练习优先出现不认识、模糊和未学习的词；每练 20 个词会插入已认识词抽查。</p>
     </section>
   `;
 }
@@ -432,44 +431,41 @@ function renderStudyCard() {
   if (!word) {
     return `<section class="panel"><p class="empty">这个语言还没有单词。</p></section>`;
   }
-  const direction = activeDirection();
-  const prompt = direction === "zhToForeign" ? word.chinese : word.term;
-  const answerMain = direction === "zhToForeign" ? word.term : word.chinese;
   const language = currentLanguage();
   const progress = `${(state.cardIndex % words.length) + 1} / ${words.length}`;
-  const answerLabel = direction === "zhToForeign" ? language.label : "中文";
-  const flipLabel = state.flipped ? "隐藏" : "显示";
+  const status = wordStatus(word);
+  const flipLabel = state.flipped ? "隐藏答案" : "显示答案";
   return `
     <section class="panel word-study-panel language-study-panel unified-study-panel">
       <div class="unified-topline">
         <span>${escapeHtml(language.label)} · ${queueLabel()}</span>
         <span>${escapeHtml(progress)}</span>
       </div>
-      <div class="mode-tabs language-mode-tabs">
-        ${["foreignToZh", "zhToForeign"]
-          .map((mode) => `<button class="${state.mode === mode ? "active" : ""}" data-mode="${mode}">${modeLabel(mode)}</button>`)
-          .join("")}
+      <div class="word-status-row">
+        <span class="word-status status-${escapeHtml(status)}">状态：${escapeHtml(languageStatusLabel(status))}</span>
       </div>
       <article class="study-card language-card unified-card">
         <div class="study-card-face unified-main">
           <div class="tap-sentence-scroll">
-            <h3 class="${direction === "foreignToZh" ? "tap-sentence" : "plain-prompt"}" lang="${escapeHtml(language.speechLang)}">
-              ${direction === "foreignToZh" ? renderTapTokens(prompt, word.languageId) : escapeHtml(prompt)}
+            <h3 class="tap-sentence" lang="${escapeHtml(language.speechLang)}">
+              ${renderTapTokens(word.term, word.languageId)}
             </h3>
           </div>
-          <div class="unified-answer ${state.flipped ? "visible" : ""}">
-            <small>${escapeHtml(answerLabel)}</small>
-            <p lang="${escapeHtml(language.speechLang)}">
-              ${direction === "zhToForeign" ? renderTapTokens(answerMain, word.languageId) : escapeHtml(answerMain)}
-            </p>
-          </div>
-          ${renderVocabularyComparison(word)}
+          ${
+            state.flipped
+              ? `<div class="unified-answer visible">
+                  <small>中文</small>
+                  <p>${escapeHtml(word.chinese)}</p>
+                  ${word.reading ? `<small>读音</small><p>${escapeHtml(word.reading)}</p>` : ""}
+                  ${word.example ? `<small>例句</small><p lang="${escapeHtml(language.speechLang)}">${escapeHtml(word.example)}</p>` : ""}
+                  ${renderVocabularyComparison(word)}
+                </div>`
+              : ""
+          }
           ${renderTappedLookup()}
         </div>
         <div class="unified-controls">
-          ${speedControl()}
           <div class="unified-play-row">
-            <button class="full-sentence-play" type="button" data-speak-full="${escapeHtml(word.term)}" data-speak-language="${escapeHtml(word.languageId)}">播放整句</button>
             <button type="button" data-flip-word>${escapeHtml(flipLabel)}</button>
           </div>
         </div>
@@ -480,7 +476,7 @@ function renderStudyCard() {
       </div>
       <div class="word-actions language-rate-actions">
         <button data-rate-language="${escapeHtml(word.id)}:unknown">不认识</button>
-        <button data-rate-language="${escapeHtml(word.id)}:fuzzy">模糊</button>
+        <button data-rate-language="${escapeHtml(word.id)}:vague">模糊</button>
         <button data-rate-language="${escapeHtml(word.id)}:known">认识</button>
       </div>
     </section>
@@ -665,24 +661,19 @@ app.addEventListener("click", (event) => {
   if (target.dataset.language) {
     state.languageId = target.dataset.language;
     state.cardIndex = 0;
-    state.flipped = true;
+    state.flipped = false;
+    state.forceKnownReview = false;
     state.editingWordId = null;
     state.tappedWord = null;
     state.message = "";
     persistSession();
     render();
   }
-  if (target.dataset.mode) {
-    state.mode = target.dataset.mode;
-    state.flipped = true;
-    state.tappedWord = null;
-    persistSession();
-    render();
-  }
   if (target.dataset.queue) {
     state.queue = target.dataset.queue;
     state.cardIndex = 0;
-    state.flipped = true;
+    state.flipped = false;
+    state.forceKnownReview = false;
     state.search = "";
     state.tappedWord = null;
     persistSession();
@@ -700,7 +691,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.prevWord !== undefined) {
     const words = studyWords();
     state.cardIndex = (state.cardIndex - 1 + words.length) % Math.max(words.length, 1);
-    state.flipped = true;
+    state.flipped = false;
     state.tappedWord = null;
     persistSession();
     render();
@@ -708,7 +699,7 @@ app.addEventListener("click", (event) => {
   if (target.dataset.nextWord !== undefined) {
     const words = studyWords();
     state.cardIndex = (state.cardIndex + 1) % Math.max(words.length, 1);
-    state.flipped = true;
+    state.flipped = false;
     state.tappedWord = null;
     persistSession();
     render();
@@ -721,9 +712,12 @@ app.addEventListener("click", (event) => {
     const [wordId, rating] = target.dataset.rateLanguage.split(":");
     state.progress = rateLanguageWord(state.progress, wordId, rating);
     state.message = `已记录：${ratingLabel(rating)}。`;
+    state.practiceCount += 1;
+    state.forceKnownReview = state.queue === "smart" && state.practiceCount > 0 && state.practiceCount % 20 === 0;
     const words = studyWords();
-    state.cardIndex = words.length ? state.cardIndex % words.length : 0;
-    state.flipped = true;
+    const stillOnRatedWord = words[state.cardIndex % Math.max(words.length, 1)]?.id === wordId;
+    state.cardIndex = words.length ? (stillOnRatedWord ? (state.cardIndex + 1) % words.length : state.cardIndex % words.length) : 0;
+    state.flipped = false;
     state.tappedWord = null;
     persistSession();
     render();
@@ -789,7 +783,7 @@ app.addEventListener("input", (event) => {
   if (!event.target.matches("[data-language-search]")) return;
   state.search = event.target.value;
   state.cardIndex = 0;
-  state.flipped = true;
+  state.flipped = false;
   state.tappedWord = null;
   render();
 });
@@ -820,7 +814,7 @@ render();
 
 function autoSpeakCurrentWord() {
   const word = currentWord();
-  if (!word || activeDirection() !== "foreignToZh") return;
+  if (!word) return;
   const key = `${word.id}:${state.languageId}:${state.cardIndex}:${state.queue}`;
   if (key === lastAutoSpeakKey) return;
   lastAutoSpeakKey = key;

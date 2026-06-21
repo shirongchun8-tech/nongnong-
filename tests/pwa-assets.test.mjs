@@ -9,7 +9,7 @@ const languageScript = fs.readFileSync("src/languages.js", "utf8");
 const serviceWorker = fs.readFileSync("service-worker.js", "utf8");
 const buildScript = fs.readFileSync("scripts/build.mjs", "utf8");
 
-assert.equal(manifest.start_url, "./languages-new.html?v=multilingual-comparison");
+assert.equal(manifest.start_url, "./languages-new.html?v=visual-status-study");
 assert.equal(manifest.display, "standalone");
 assert.ok(manifest.icons.some((icon) => icon.sizes === "192x192" && icon.purpose.includes("maskable")));
 assert.ok(manifest.icons.some((icon) => icon.sizes === "512x512" && icon.purpose.includes("maskable")));
@@ -23,15 +23,15 @@ for (const html of [indexHtml, languagesHtml]) {
 assert.match(languageScript, /serviceWorker\.register\("\.\/service-worker\.js"\)/);
 assert.match(resetHtml, /caches\.keys/);
 assert.match(resetHtml, /registration\.unregister/);
-assert.match(resetHtml, /languages-new\.html\?v=multilingual-comparison/);
+assert.match(resetHtml, /languages-new\.html\?v=visual-status-study/);
 assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
 assert.match(serviceWorker, /fetch\(event\.request\)/);
 
 for (const asset of [
-  "./languages.html?v=multilingual-comparison",
-  "./languages-new.html?v=multilingual-comparison",
-  "./src/languageData.js?v=multilingual-comparison",
-  "./src/data/word1368Data.js?v=multilingual-comparison",
+  "./languages.html?v=visual-status-study",
+  "./languages-new.html?v=visual-status-study",
+  "./src/languageData.js?v=visual-status-study",
+  "./src/data/word1368Data.js?v=visual-status-study",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
