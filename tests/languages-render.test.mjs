@@ -125,10 +125,12 @@ function submit(values) {
 assert.match(app.innerHTML, /英语/);
 assert.match(app.innerHTML, /智能练习/);
 assert.match(app.innerHTML, /今日计划/);
-assert.match(app.innerHTML, /新词 0 \/ 20/);
-assert.match(app.innerHTML, /复习 0 \/ 0/);
-assert.match(app.innerHTML, /总进度 0 \/ 20/);
+assert.match(app.innerHTML, /第 1 组/);
+assert.match(app.innerHTML, /本组 0 \/ 20/);
+assert.match(app.innerHTML, /待学 20/);
+assert.match(app.innerHTML, /风险 0/);
 assert.match(app.innerHTML, /状态：未学习/);
+assert.match(app.innerHTML, /☆☆☆☆☆/);
 assert.doesNotMatch(app.innerHTML, /四语对照/);
 assert.doesNotMatch(app.innerHTML, /韩语/);
 assert.doesNotMatch(app.innerHTML, /法语/);
@@ -163,8 +165,8 @@ assert.match(app.innerHTML, /已记录：认识/);
 assert.equal(spoken.at(-1)?.text, "thank you");
 assert.match(storage["multi-language-word-studio-progress"], /"status":"known"/);
 assert.match(storage["multi-language-word-studio-progress"], /"completedNewIds":\["starter-en-0"\]/);
-assert.match(app.innerHTML, /新词 1 \/ 20/);
-assert.match(app.innerHTML, /总进度 1 \/ 20/);
+assert.match(app.innerHTML, /本组 1 \/ 20/);
+assert.match(app.innerHTML, /待学 19/);
 
 click({ language: "ko" });
 assert.match(app.innerHTML, /안녕하세요/);
@@ -192,6 +194,9 @@ assert.match(app.innerHTML, /试听/);
 assert.match(app.innerHTML, /未学习/);
 assert.match(app.innerHTML, /不认识/);
 assert.match(app.innerHTML, /总词数/);
+assert.match(app.innerHTML, /记忆曲线/);
+assert.match(app.innerHTML, /平均记忆/);
+assert.match(app.innerHTML, /满熟练/);
 
 input("water");
 assert.match(app.innerHTML, /water/);

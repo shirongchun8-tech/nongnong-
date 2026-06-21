@@ -9,7 +9,7 @@ const languageScript = fs.readFileSync("src/languages.js", "utf8");
 const serviceWorker = fs.readFileSync("service-worker.js", "utf8");
 const buildScript = fs.readFileSync("scripts/build.mjs", "utf8");
 
-assert.equal(manifest.start_url, "./languages-new.html?v=daily-plan-study");
+assert.equal(manifest.start_url, "./languages-new.html?v=group-memory-curve");
 assert.equal(manifest.display, "standalone");
 assert.ok(manifest.icons.some((icon) => icon.sizes === "192x192" && icon.purpose.includes("maskable")));
 assert.ok(manifest.icons.some((icon) => icon.sizes === "512x512" && icon.purpose.includes("maskable")));
@@ -23,15 +23,15 @@ for (const html of [indexHtml, languagesHtml]) {
 assert.match(languageScript, /serviceWorker\.register\("\.\/service-worker\.js"\)/);
 assert.match(resetHtml, /caches\.keys/);
 assert.match(resetHtml, /registration\.unregister/);
-assert.match(resetHtml, /languages-new\.html\?v=daily-plan-study/);
+assert.match(resetHtml, /languages-new\.html\?v=group-memory-curve/);
 assert.match(serviceWorker, /event\.request\.mode === "navigate"/);
 assert.match(serviceWorker, /fetch\(event\.request\)/);
 
 for (const asset of [
-  "./languages.html?v=daily-plan-study",
-  "./languages-new.html?v=daily-plan-study",
-  "./src/languageData.js?v=daily-plan-study",
-  "./src/data/word1368Data.js?v=daily-plan-study",
+  "./languages.html?v=group-memory-curve",
+  "./languages-new.html?v=group-memory-curve",
+  "./src/languageData.js?v=group-memory-curve",
+  "./src/data/word1368Data.js?v=group-memory-curve",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

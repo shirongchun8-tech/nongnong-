@@ -1204,6 +1204,76 @@ body.theme-light .tap-sentence-scroll::after {
   color: var(--muted);
 }
 
+.mastery-stars {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid rgba(246, 193, 119, 0.34);
+  border-radius: 999px;
+  color: var(--warm);
+  background: rgba(246, 193, 119, 0.11);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.memory-curve-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(110px, 0.9fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(135, 224, 216, 0.18);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.memory-curve-panel strong,
+.memory-curve-panel span {
+  display: block;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.memory-curve-panel strong {
+  color: var(--ink);
+}
+
+.memory-curve-panel span,
+.memory-curve-meta span {
+  color: var(--muted);
+}
+
+.memory-curve-chart {
+  width: 100%;
+  height: 48px;
+  overflow: visible;
+}
+
+.memory-curve-chart path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 2;
+}
+
+.memory-curve-chart polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 6;
+}
+
+.memory-curve-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  text-align: center;
+}
+
 .language-rate-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1384,6 +1454,14 @@ body.theme-light .tap-sentence-scroll::after {
 
   .unified-answer p {
     font-size: 16px;
+  }
+
+  .memory-curve-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-curve-chart {
+    height: 42px;
   }
 
   .unified-play-row button,

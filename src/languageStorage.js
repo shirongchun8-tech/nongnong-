@@ -18,7 +18,7 @@ const STATUS_LABELS = {
   known: "认识",
 };
 export const DEFAULT_DAILY_LANGUAGE_PLAN = {
-  newLimit: 20,
+  groupSize: 20,
   reviewLimit: 60,
 };
 
@@ -193,8 +193,10 @@ function normalizeDailyPlan(plan = {}) {
   return {
     dateKey: cleanText(plan.dateKey),
     languageId: normalizeLanguageId(plan.languageId),
-    newLimit: Number(plan.newLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.newLimit,
+    groupSize: Number(plan.groupSize || plan.newLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.groupSize,
+    groupIndex: Math.max(0, Number(plan.groupIndex) || 0),
     reviewLimit: Number(plan.reviewLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.reviewLimit,
+    groupWordIds: cleanStringList(plan.groupWordIds),
     newWordIds: cleanStringList(plan.newWordIds),
     reviewWordIds: cleanStringList(plan.reviewWordIds),
     completedNewIds: cleanStringList(plan.completedNewIds),
@@ -232,37 +234,80 @@ function byPlanPriority(progress, now = new Date()) {
   };
 }
 
+export function languageMasteryStars(record) {
+  return Math.max(0, Math.min(Number(record?.known) || 0, 5));
+}
+
+function hasEverKnown(record) {
+  return (Number(record?.known) || 0) > 0;
+}
+
+export function calculateLanguageMemory(record, now = new Date()) {
+  if (!record) return 0;
+  const status = getLanguageCardStatus(record);
+  const stars = languageMasteryStars(record);
+  const base = status === "unknown" ? 20 : status === "vague" ? 45 : status === "known" ? 58 + stars * 9 : 0;
+  const updatedAt = record.updatedAt || record.nextReviewAt;
+  if (!updatedAt) return Math.max(0, Math.min(100, Math.round(base)));
+  const ageDays = Math.max(0, (now.getTime() - new Date(updatedAt).getTime()) / DAY);
+  const dailyDecay = [24, 18, 13, 9, 5, 2][stars] ?? 24;
+  return Math.max(0, Math.min(100, Math.round(base - ageDays * dailyDecay)));
+}
+
+function isFullyMastered(record, now = new Date()) {
+  return languageMasteryStars(record) >= 5;
+}
+
+function groupIndexForProgress(words, progress, groupSize) {
+  const groupCount = Math.max(1, Math.ceil(words.length / groupSize));
+  for (let index = 0; index < groupCount; index += 1) {
+    const groupWords = words.slice(index * groupSize, (index + 1) * groupSize);
+    if (groupWords.some((word) => !hasEverKnown(progress.cards[word.id]))) return index;
+  }
+  return groupCount - 1;
+}
+
+function groupRiskWords(words, progress, groupIndex, groupSize, now = new Date()) {
+  const previousWords = words.slice(0, groupIndex * groupSize);
+  return previousWords
+    .filter((word) => {
+      const record = progress.cards[word.id];
+      const status = getLanguageCardStatus(record);
+      if (isFullyMastered(record, now)) return false;
+      return status === "unknown" || status === "vague" || (status === "known" && languageMasteryStars(record) < 5) || calculateLanguageMemory(record, now) < 70;
+    })
+    .sort(byPlanPriority(progress, now));
+}
+
 export function ensureDailyLanguagePlan(progress, words, options = {}) {
   const normalized = normalizeLanguageProgress(progress);
   const languageId = normalizeLanguageId(options.languageId);
   const dateKey = cleanText(options.dateKey) || languageDateKey(options.now || new Date());
-  const existing = normalized.dailyPlans[languageId];
-  if (existing?.dateKey === dateKey) return existing;
-
-  const newLimit = Number(options.newLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.newLimit;
+  const groupSize = Number(options.groupSize || options.newLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.groupSize;
   const reviewLimit = Number(options.reviewLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.reviewLimit;
   const now = options.now || new Date();
-  const reviewWords = words
-    .filter((word) => {
-      const record = normalized.cards[word.id];
-      const status = getLanguageCardStatus(record);
-      return status === "unknown" || status === "vague" || (status === "known" && isLanguageReviewDue(record, now));
-    })
-    .sort(byPlanPriority(normalized, now))
-    .slice(0, reviewLimit);
-  const reviewWordIds = new Set(reviewWords.map((word) => word.id));
-  const newWordIds = words
-    .filter((word) => !reviewWordIds.has(word.id) && getLanguageCardStatus(normalized.cards[word.id]) === "unlearned")
-    .slice(0, newLimit)
+  const groupIndex = groupIndexForProgress(words, normalized, groupSize);
+  const existing = normalized.dailyPlans[languageId];
+  if (existing?.dateKey === dateKey && existing.groupIndex === groupIndex && existing.groupSize === groupSize) return existing;
+
+  const groupWords = words.slice(groupIndex * groupSize, (groupIndex + 1) * groupSize);
+  const groupWordIds = groupWords.map((word) => word.id);
+  const newWordIds = groupWords
+    .filter((word) => !hasEverKnown(normalized.cards[word.id]))
+    .map((word) => word.id);
+  const reviewWordIds = groupRiskWords(words, normalized, groupIndex, groupSize, now)
+    .slice(0, reviewLimit)
     .map((word) => word.id);
 
   return {
     dateKey,
     languageId,
-    newLimit,
+    groupSize,
+    groupIndex,
     reviewLimit,
+    groupWordIds,
     newWordIds,
-    reviewWordIds: [...reviewWordIds],
+    reviewWordIds,
     completedNewIds: [],
     completedReviewIds: [],
     updatedAt: now.toISOString(),
@@ -299,6 +344,33 @@ export function getDailyLanguagePlanStats(plan) {
     reviewTotal: normalized.reviewWordIds.length,
     totalDone: newDone + reviewDone,
     total: normalized.newWordIds.length + normalized.reviewWordIds.length,
+    groupIndex: normalized.groupIndex,
+    groupDone: normalized.groupWordIds.length - normalized.newWordIds.length + newDone,
+    groupTotal: normalized.groupWordIds.length,
+  };
+}
+
+export function calculateMemoryCurve(words, progress, now = new Date()) {
+  const normalized = normalizeLanguageProgress(progress);
+  const memories = words.map((word) => calculateLanguageMemory(normalized.cards[word.id], now));
+  const total = words.length;
+  const averageMemory = total ? Math.round(memories.reduce((sum, value) => sum + value, 0) / total) : 0;
+  const buckets = {
+    low: memories.filter((value) => value <= 30).length,
+    review: memories.filter((value) => value > 30 && value <= 60).length,
+    stable: memories.filter((value) => value > 60 && value <= 85).length,
+    strong: memories.filter((value) => value > 85).length,
+  };
+  const masteredCount = words.filter((word) => isFullyMastered(normalized.cards[word.id], now)).length;
+  const riskCount = buckets.low + buckets.review;
+  const maxBucket = Math.max(1, buckets.low, buckets.review, buckets.stable, buckets.strong);
+  return {
+    total,
+    averageMemory,
+    riskCount,
+    masteredCount,
+    buckets,
+    points: [buckets.low, buckets.review, buckets.stable, buckets.strong].map((value) => Math.round((value / maxBucket) * 100)),
   };
 }
 

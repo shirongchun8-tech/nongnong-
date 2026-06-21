@@ -14,6 +14,8 @@ global.localStorage = {
 };
 
 import {
+  calculateLanguageMemory,
+  calculateMemoryCurve,
   calculateLanguageStats,
   completeDailyLanguageWord,
   deleteLanguageWord,
@@ -146,38 +148,17 @@ assert.deepEqual(statusCounts, {
 });
 
 const planWords = [
-  { id: "w-known-due" },
-  { id: "w-known-fresh" },
-  { id: "w-unknown" },
-  { id: "w-vague" },
-  { id: "w-new-1" },
-  { id: "w-new-2" },
-  { id: "w-new-3" },
+  ...Array.from({ length: 20 }, (_, index) => ({ id: `g1-${index + 1}` })),
+  ...Array.from({ length: 20 }, (_, index) => ({ id: `g2-${index + 1}` })),
 ];
 const planProgress = normalizePlanProgress({
   cards: {
-    "w-known-due": {
-      seen: 2,
-      known: 2,
-      fuzzy: 0,
-      unknown: 0,
-      streak: 2,
-      box: 3,
-      status: "known",
-      nextReviewAt: "2026-06-11T00:00:00.000Z",
-    },
-    "w-known-fresh": {
-      seen: 2,
-      known: 2,
-      fuzzy: 0,
-      unknown: 0,
-      streak: 2,
-      box: 3,
-      status: "known",
-      nextReviewAt: "2026-06-20T00:00:00.000Z",
-    },
-    "w-unknown": { seen: 1, known: 0, fuzzy: 0, unknown: 1, streak: 0, box: 1, status: "unknown" },
-    "w-vague": { seen: 1, known: 0, fuzzy: 1, unknown: 0, streak: 0, box: 1, status: "vague" },
+    ...Object.fromEntries(
+      Array.from({ length: 19 }, (_, index) => [
+        `g1-${index + 1}`,
+        { seen: 1, known: 1, fuzzy: 0, unknown: 0, streak: 1, box: 2, status: "known" },
+      ]),
+    ),
   },
 });
 
@@ -188,12 +169,13 @@ function normalizePlanProgress(progress) {
 const dailyPlan = ensureDailyLanguagePlan(planProgress, planWords, {
   languageId: "en",
   dateKey: "2026-06-12",
-  newLimit: 2,
-  reviewLimit: 3,
+  groupSize: 20,
   now: new Date("2026-06-12T12:00:00Z"),
 });
-assert.deepEqual(dailyPlan.newWordIds, ["w-new-1", "w-new-2"]);
-assert.deepEqual(dailyPlan.reviewWordIds, ["w-unknown", "w-vague", "w-known-due"]);
+assert.equal(dailyPlan.groupIndex, 0);
+assert.deepEqual(dailyPlan.groupWordIds, planWords.slice(0, 20).map((word) => word.id));
+assert.deepEqual(dailyPlan.newWordIds, ["g1-20"]);
+assert.deepEqual(dailyPlan.reviewWordIds, []);
 assert.equal(dailyPlan.completedNewIds.length, 0);
 assert.equal(dailyPlan.completedReviewIds.length, 0);
 
@@ -208,13 +190,11 @@ const sameDailyPlan = ensureDailyLanguagePlan(
   {
     languageId: "en",
     dateKey: "2026-06-12",
-    newLimit: 1,
-    reviewLimit: 1,
+    groupSize: 20,
     now: new Date("2026-06-12T12:00:00Z"),
   },
 );
-assert.deepEqual(sameDailyPlan.newWordIds, ["w-new-1", "w-new-2"]);
-assert.deepEqual(sameDailyPlan.reviewWordIds, ["w-unknown", "w-vague", "w-known-due"]);
+assert.deepEqual(sameDailyPlan.groupWordIds, planWords.slice(0, 20).map((word) => word.id));
 
 let completedPlanProgress = {
   ...planProgress,
@@ -222,7 +202,38 @@ let completedPlanProgress = {
     en: dailyPlan,
   },
 };
-completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "w-new-1");
-completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "w-unknown");
-assert.deepEqual(completedPlanProgress.dailyPlans.en.completedNewIds, ["w-new-1"]);
-assert.deepEqual(completedPlanProgress.dailyPlans.en.completedReviewIds, ["w-unknown"]);
+completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "g1-20");
+assert.deepEqual(completedPlanProgress.dailyPlans.en.completedNewIds, ["g1-20"]);
+
+const secondGroupProgress = normalizePlanProgress({
+  cards: {
+    ...Object.fromEntries(
+      Array.from({ length: 20 }, (_, index) => [
+        `g1-${index + 1}`,
+        { seen: 1, known: 1, fuzzy: 0, unknown: 0, streak: 1, box: 2, status: "known" },
+      ]),
+    ),
+    "g1-2": { seen: 3, known: 1, fuzzy: 2, unknown: 0, streak: 0, box: 2, status: "vague" },
+    "g1-3": { seen: 1, known: 1, fuzzy: 0, unknown: 0, streak: 1, box: 2, status: "known", nextReviewAt: "2026-06-11T00:00:00.000Z" },
+    "g1-4": { seen: 6, known: 5, fuzzy: 0, unknown: 0, streak: 5, box: 6, status: "known", nextReviewAt: "2026-07-12T00:00:00.000Z" },
+  },
+});
+const secondGroupPlan = ensureDailyLanguagePlan(secondGroupProgress, planWords, {
+  languageId: "en",
+  dateKey: "2026-06-12",
+  groupSize: 20,
+  now: new Date("2026-06-12T12:00:00Z"),
+});
+assert.equal(secondGroupPlan.groupIndex, 1);
+assert.deepEqual(secondGroupPlan.groupWordIds, planWords.slice(20, 40).map((word) => word.id));
+assert.ok(secondGroupPlan.reviewWordIds.includes("g1-2"));
+assert.ok(secondGroupPlan.reviewWordIds.includes("g1-3"));
+assert.ok(!secondGroupPlan.reviewWordIds.includes("g1-4"));
+assert.equal(calculateLanguageMemory(secondGroupProgress.cards["g1-4"], new Date("2026-06-12T12:00:00Z")), 100);
+
+const memoryCurve = calculateMemoryCurve(planWords.slice(0, 5), secondGroupProgress, new Date("2026-06-12T12:00:00Z"));
+assert.equal(memoryCurve.total, 5);
+assert.equal(memoryCurve.masteredCount, 1);
+assert.ok(memoryCurve.averageMemory >= 0);
+assert.ok(memoryCurve.averageMemory <= 100);
+assert.equal(memoryCurve.points.length, 4);

@@ -1,5 +1,6 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=daily-plan-study";
+import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData.js?v=group-memory-curve";
 import {
+  calculateMemoryCurve,
   calculateLanguageStats,
   completeDailyLanguageWord,
   deleteLanguageWord,
@@ -8,7 +9,7 @@ import {
   getLanguageCardStatus,
   getDailyLanguagePlanStats,
   importLanguageContent,
-  isLanguageReviewDue,
+  languageMasteryStars,
   languageStatusLabel,
   loadLanguageContent,
   loadLanguageProgress,
@@ -17,13 +18,13 @@ import {
   saveDailyLanguagePlan,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=daily-plan-study";
+} from "./languageStorage.js?v=group-memory-curve";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=daily-plan-study";
+} from "./languageSpeech.js?v=group-memory-curve";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
@@ -137,7 +138,12 @@ function wordStatus(word) {
 function ensureTodayPlan(languageId = state.languageId) {
   const plan = ensureDailyLanguagePlan(state.progress, wordsForLanguage(languageId), { languageId });
   const existing = state.progress.dailyPlans?.[languageId];
-  if (existing?.dateKey !== plan.dateKey) {
+  if (
+    existing?.dateKey !== plan.dateKey ||
+    existing?.groupIndex !== plan.groupIndex ||
+    existing?.groupSize !== plan.groupSize ||
+    existing?.updatedAt !== plan.updatedAt
+  ) {
     state.progress = saveDailyLanguagePlan(state.progress, languageId, plan);
   }
   return state.progress.dailyPlans?.[languageId] || plan;
@@ -278,10 +284,6 @@ function isDifficultWord(word) {
   return ["unknown", "vague"].includes(wordStatus(word));
 }
 
-function dueWords(words) {
-  return words.filter((word) => isLanguageReviewDue(state.progress.cards[word.id]));
-}
-
 function wordsForQueue() {
   const words = wordsForLanguage();
   if (state.queue === "all") return words;
@@ -291,19 +293,14 @@ function wordsForQueue() {
   const plannedIds = [...plan.reviewWordIds, ...plan.newWordIds].filter((id) => !completed.has(id));
   const planned = plannedIds.map((id) => words.find((word) => word.id === id)).filter(Boolean);
   if (planned.length) return planned;
-  const known = words.filter((word) => wordStatus(word) === "known");
-  if (state.forceKnownReview && known.length) return known;
-  const unknown = words.filter((word) => wordStatus(word) === "unknown");
-  const vague = words.filter((word) => wordStatus(word) === "vague");
-  const unlearned = words.filter((word) => wordStatus(word) === "unlearned");
-  const dueKnown = dueWords(known);
-  return [...unknown, ...vague, ...unlearned, ...dueKnown, ...known];
+  if (state.queue === "smart") return [];
+  return words;
 }
 
 function studyWords() {
   const words = wordsForQueue();
   const filtered = state.search.trim() ? words.filter((word) => matchesQuery(word, state.search)) : words;
-  return filtered.length ? filtered : wordsForLanguage();
+  return filtered.length ? filtered : words;
 }
 
 function currentWord() {
@@ -428,6 +425,8 @@ function renderVocabularyComparison(word) {
 
 function renderProgressPanel() {
   const stats = calculateLanguageStats(wordsForLanguage(), state.progress);
+  const memoryCurve = calculateMemoryCurve(wordsForLanguage(), state.progress);
+  const curvePoints = memoryCurve.points.map((value, index) => `${index * 33.33},${100 - value}`).join(" ");
   return `
     <section class="panel language-progress-panel">
       <div class="section-title">
@@ -441,12 +440,26 @@ function renderProgressPanel() {
         <div class="language-stat status-vague"><strong>${stats.vague}</strong><span>模糊</span></div>
         <div class="language-stat status-known"><strong>${stats.known}</strong><span>认识</span></div>
       </div>
+      <div class="memory-curve-panel" aria-label="记忆曲线">
+        <div>
+          <strong>记忆曲线</strong>
+          <span>平均记忆 ${memoryCurve.averageMemory}%</span>
+        </div>
+        <svg class="memory-curve-chart" viewBox="0 0 100 100" role="img" aria-label="低记忆到强记忆分布">
+          <path d="M0 100H100" />
+          <polyline points="${escapeHtml(curvePoints)}" />
+        </svg>
+        <div class="memory-curve-meta">
+          <span>风险词 ${memoryCurve.riskCount}</span>
+          <span>满熟练 ${memoryCurve.masteredCount}</span>
+        </div>
+      </div>
       <div class="mode-tabs language-queue-tabs">
         ${["smart", "all", "unlearned", "unknown", "vague", "known"]
           .map((queue) => `<button class="${state.queue === queue ? "active" : ""}" data-queue="${queue}">${queueLabel(queue)}</button>`)
           .join("")}
       </div>
-      <p class="review-note">智能练习优先出现不认识、模糊和未学习的词；每练 20 个词会插入已认识词抽查。</p>
+      <p class="review-note">智能练习每 20 个词为一组；本组全部至少正确一次后进入下一组，旧组低熟练词会按记忆曲线回流复习。</p>
     </section>
   `;
 }
@@ -455,19 +468,37 @@ function renderDailyPlanPanel() {
   const stats = dailyPlanStats();
   return `
     <section class="daily-plan-strip" aria-label="今日计划">
-      <strong>今日计划</strong>
-      <span>新词 ${stats.newDone} / ${stats.newTotal}</span>
-      <span>复习 ${stats.reviewDone} / ${stats.reviewTotal}</span>
-      <span>总进度 ${stats.totalDone} / ${stats.total}</span>
+      <strong>第 ${stats.groupIndex + 1} 组</strong>
+      <span>本组 ${stats.groupDone} / ${stats.groupTotal}</span>
+      <span>待学 ${Math.max(0, stats.newTotal - stats.newDone)}</span>
+      <span>风险 ${Math.max(0, stats.reviewTotal - stats.reviewDone)}</span>
     </section>
   `;
+}
+
+function masteryStars(word) {
+  const count = languageMasteryStars(state.progress.cards[word.id]);
+  return `${"★".repeat(count)}${"☆".repeat(5 - count)}`;
 }
 
 function renderStudyCard() {
   const words = studyWords();
   const word = currentWord();
   if (!word) {
-    return `<section class="panel"><p class="empty">这个语言还没有单词。</p></section>`;
+    return `
+      <section class="panel word-study-panel language-study-panel unified-study-panel">
+        <div class="unified-topline">
+          <span>${escapeHtml(currentLanguage().label)} · ${queueLabel()}</span>
+          <span>完成</span>
+        </div>
+        ${renderDailyPlanPanel()}
+        <article class="study-card language-card unified-card">
+          <div class="study-card-face unified-main">
+            <p class="empty">本组暂时完成了。低熟练词会在后面的组里按记忆曲线回来。</p>
+          </div>
+        </article>
+      </section>
+    `;
   }
   const language = currentLanguage();
   const progress = `${(state.cardIndex % words.length) + 1} / ${words.length}`;
@@ -481,6 +512,7 @@ function renderStudyCard() {
       </div>
       <div class="word-status-row">
         <span class="word-status status-${escapeHtml(status)}">状态：${escapeHtml(languageStatusLabel(status))}</span>
+        <span class="mastery-stars" aria-label="熟练度">${escapeHtml(masteryStars(word))}</span>
       </div>
       <article class="study-card language-card unified-card">
         <div class="study-card-face unified-main">

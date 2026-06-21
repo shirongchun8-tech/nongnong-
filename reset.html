@@ -32,7 +32,7 @@
     <main>
       <h1>正在更新离线缓存</h1>
       <p>请稍等，旧版缓存清理完成后会自动打开新版。</p>
-      <p><a href="./languages-new.html?v=daily-plan-study">如果没有自动跳转，点这里打开新版。</a></p>
+      <p><a href="./languages-new.html?v=group-memory-curve">如果没有自动跳转，点这里打开新版。</a></p>
     </main>
     <script>
       async function resetApp() {
@@ -44,11 +44,11 @@
           const keys = await caches.keys();
           await Promise.all(keys.map((key) => caches.delete(key)));
         }
-        window.location.replace("./languages-new.html?v=daily-plan-study");
+        window.location.replace("./languages-new.html?v=group-memory-curve");
       }
 
       resetApp().catch(() => {
-        window.location.href = "./languages-new.html?v=daily-plan-study";
+        window.location.href = "./languages-new.html?v=group-memory-curve";
       });
     </script>
   </body>
