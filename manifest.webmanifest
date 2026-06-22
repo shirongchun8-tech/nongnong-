@@ -3,7 +3,7 @@
   "short_name": "Word Studio",
   "description": "离线可用的多语言词卡学习工具",
   "lang": "zh-CN",
-  "start_url": "./languages-new.html?v=group-examples-v2",
+  "start_url": "./languages-new.html?v=natural-examples-v1",
   "scope": "./",
   "display": "standalone",
   "background_color": "#111c24",

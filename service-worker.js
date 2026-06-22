@@ -1,24 +1,24 @@
-const CACHE_NAME = "language-word-studio-group-examples-v2-v3";
+const CACHE_NAME = "language-word-studio-natural-examples-v1-v3";
 
 const OFFLINE_ASSETS = [
   "./",
-  "./index.html?v=group-examples-v2",
-  "./languages.html?v=group-examples-v2",
-  "./languages-new.html?v=group-examples-v2",
+  "./index.html?v=natural-examples-v1",
+  "./languages.html?v=natural-examples-v1",
+  "./languages-new.html?v=natural-examples-v1",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./src/styles.css?v=group-examples-v2",
-  "./src/languages.css?v=group-examples-v2",
-  "./src/main.js?v=group-examples-v2",
-  "./src/languages.js?v=group-examples-v2",
-  "./src/languageData.js?v=group-examples-v2",
-  "./src/languageStorage.js?v=group-examples-v2",
-  "./src/languageSpeech.js?v=group-examples-v2",
-  "./src/storage.js?v=group-examples-v2",
-  "./src/speech.js?v=group-examples-v2",
-  "./src/data/courseData.js?v=group-examples-v2",
-  "./src/data/word1368Data.js?v=group-examples-v2",
+  "./src/styles.css?v=natural-examples-v1",
+  "./src/languages.css?v=natural-examples-v1",
+  "./src/main.js?v=natural-examples-v1",
+  "./src/languages.js?v=natural-examples-v1",
+  "./src/languageData.js?v=natural-examples-v1",
+  "./src/languageStorage.js?v=natural-examples-v1",
+  "./src/languageSpeech.js?v=natural-examples-v1",
+  "./src/storage.js?v=natural-examples-v1",
+  "./src/speech.js?v=natural-examples-v1",
+  "./src/data/courseData.js?v=natural-examples-v1",
+  "./src/data/word1368Data.js?v=natural-examples-v1",
 ];
 
 self.addEventListener("install", (event) => {
@@ -42,7 +42,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=group-examples-v2")));
+    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=natural-examples-v1")));
     return;
   }
   event.respondWith(
@@ -56,7 +56,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=group-examples-v2");
+          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=natural-examples-v1");
           return undefined;
         });
     }),

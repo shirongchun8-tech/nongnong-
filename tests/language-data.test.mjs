@@ -33,13 +33,24 @@ const generatedHoldExample = getWordExample({
   example: "",
 });
 assert.equal(generatedHoldExample.generated, true);
-assert.match(generatedHoldExample.text, /hold/);
-assert.match(generatedHoldExample.chinese, /这个句子使用/);
+assert.equal(generatedHoldExample.text, "暂无自然例句");
+assert.equal(generatedHoldExample.chinese, "这个词暂时没有可靠例句。");
 assert.ok(generatedHoldExample.vocabularyTerms.includes("hold"));
 
 const existingFoodExample = getWordExample(getStarterWords("en").find((word) => word.term === "food"));
 assert.equal(existingFoodExample.generated, false);
 assert.equal(existingFoodExample.text, "This food is good.");
+
+const aboveExamples = Object.fromEntries(
+  ["en", "fr", "ja", "ko"].map((languageId) => [languageId, getWordExample(getStarterWords(languageId).find((word) => word.baseTerm === "above"))]),
+);
+assert.equal(aboveExamples.en.generated, true);
+assert.equal(aboveExamples.en.text, "The book is above the table.");
+assert.equal(aboveExamples.fr.text, "Le livre est au-dessus de la table.");
+assert.equal(aboveExamples.ja.text, "本は机の上にあります。");
+assert.equal(aboveExamples.ko.text, "책이 탁자 위에 있어요.");
+assert.ok(Object.values(aboveExamples).every((example) => !example.text.includes("→")));
+assert.ok(Object.values(aboveExamples).every((example) => !/use .* with|utilise .* avec|사용해요/.test(example.text)));
 
 const foodJapanese = getStarterWords("ja").find((word) => word.term === "食べ物");
 const foodComparison = getVocabularyComparison(foodJapanese);

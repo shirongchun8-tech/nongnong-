@@ -1,4 +1,4 @@
-import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data-current.js?v=group-examples-v2";
+import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data-current.js?v=natural-examples-v1";
 
 export const languageCatalog = [
   { id: "en", label: "英语", nativeLabel: "English", speechLang: "en-US" },
@@ -271,40 +271,39 @@ export function getVocabularyComparison(word) {
   };
 }
 
-function findWordByBaseTerm(languageId, baseTerm) {
-  return getStarterWords(languageId).find((item) => item.baseTerm === baseTerm) || null;
+function cleanExampleText(value = "") {
+  return String(value).trim();
 }
 
-const generatedExampleTemplates = {
-  en(word, helper) {
-    return {
-      text: `I use ${word.term} with ${helper.term}.`,
-      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
-    };
-  },
-  fr(word, helper) {
-    return {
-      text: `J'utilise ${word.term} avec ${helper.term}.`,
-      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
-    };
-  },
-  ja(word, helper) {
-    return {
-      text: `${word.term}と${helper.term}を使います。`,
-      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
-    };
-  },
-  ko(word, helper) {
-    return {
-      text: `${word.term}와 ${helper.term}을 사용해요.`,
-      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
-    };
+function inferWordLanguageId(word) {
+  if (word?.languageId) return word.languageId;
+  const match = starterVocabulary.find((group) => group.words.some((item) => item === word || (item.term === word?.term && item.baseTerm === word?.baseTerm)));
+  return match?.languageId || "en";
+}
+
+function isNaturalExample(word) {
+  const example = cleanExampleText(word?.example);
+  if (!example) return false;
+  const term = cleanExampleText(word?.term);
+  const baseTerm = cleanExampleText(word?.baseTerm);
+  if (example === term || example === baseTerm) return false;
+  if (/[→=>]/.test(example)) return false;
+  if (/^\S+\s*[-–]\s*\S+$/.test(example)) return false;
+  return /[\s。！？.!?]/.test(example);
+}
+
+const generatedExampleByBaseTerm = {
+  above: {
+    en: { text: "The book is above the table.", chinese: "书在桌子上方。", vocabularyTerms: ["book", "above"] },
+    fr: { text: "Le livre est au-dessus de la table.", chinese: "书在桌子上方。", vocabularyTerms: ["livre", "au-dessus de"] },
+    ja: { text: "本は机の上にあります。", chinese: "书在桌子上。", vocabularyTerms: ["本", "上"] },
+    ko: { text: "책이 탁자 위에 있어요.", chinese: "书在桌子上。", vocabularyTerms: ["책", "위에"] },
   },
 };
 
 export function getWordExample(word) {
   if (!word) return null;
-  if (word.example) {
+  if (isNaturalExample(word)) {
     return {
       text: word.example,
       chinese: word.chinese,
@@ -312,17 +311,20 @@ export function getWordExample(word) {
       vocabularyTerms: [word.term],
     };
   }
-  const languageId = word.languageId || "en";
-  const helperBaseTerms = ["food", "book", "school", "home", "friend", "today"];
-  const helper =
-    helperBaseTerms.map((baseTerm) => findWordByBaseTerm(languageId, baseTerm)).find((item) => item && item.term !== word.term) ||
-    getStarterWords(languageId).find((item) => item.term !== word.term) ||
-    word;
-  const template = generatedExampleTemplates[languageId] || generatedExampleTemplates.en;
-  const generated = template(word, helper);
+  const languageId = inferWordLanguageId(word);
+  const baseTerm = word.baseTerm || "";
+  const generated = generatedExampleByBaseTerm[baseTerm]?.[languageId];
+  if (!generated) {
+    return {
+      text: "暂无自然例句",
+      chinese: "这个词暂时没有可靠例句。",
+      generated: true,
+      vocabularyTerms: [word.term].filter(Boolean),
+    };
+  }
   return {
     ...generated,
     generated: true,
-    vocabularyTerms: [...new Set([word.term, helper.term].filter(Boolean))],
+    vocabularyTerms: [...new Set([word.term, ...(generated.vocabularyTerms || [])].filter(Boolean))],
   };
 }

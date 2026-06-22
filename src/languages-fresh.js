@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, getWordExample, languageCatalog } from "./languageData-fresh.js?v=group-examples-v2";
+import { getLanguage, getStarterWords, getVocabularyComparison, getWordExample, languageCatalog } from "./languageData-fresh.js?v=natural-examples-v1";
 import {
   calculateMemoryCurve,
   calculateLanguageStats,
@@ -18,13 +18,13 @@ import {
   saveDailyLanguagePlan,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=group-examples-v2";
+} from "./languageStorage.js?v=natural-examples-v1";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=group-examples-v2";
+} from "./languageSpeech.js?v=natural-examples-v1";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
