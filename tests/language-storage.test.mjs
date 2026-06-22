@@ -202,7 +202,9 @@ let completedPlanProgress = {
     en: dailyPlan,
   },
 };
-completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "g1-20");
+completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "g1-20", "unknown");
+assert.deepEqual(completedPlanProgress.dailyPlans.en.completedNewIds, []);
+completedPlanProgress = completeDailyLanguageWord(completedPlanProgress, "en", "g1-20", "known");
 assert.deepEqual(completedPlanProgress.dailyPlans.en.completedNewIds, ["g1-20"]);
 
 const secondGroupProgress = normalizePlanProgress({
@@ -230,6 +232,23 @@ assert.ok(secondGroupPlan.reviewWordIds.includes("g1-2"));
 assert.ok(secondGroupPlan.reviewWordIds.includes("g1-3"));
 assert.ok(!secondGroupPlan.reviewWordIds.includes("g1-4"));
 assert.equal(calculateLanguageMemory(secondGroupProgress.cards["g1-4"], new Date("2026-06-12T12:00:00Z")), 100);
+
+const staleFirstGroupPlan = ensureDailyLanguagePlan(
+  {
+    ...secondGroupProgress,
+    dailyPlans: {
+      en: dailyPlan,
+    },
+  },
+  planWords,
+  {
+    languageId: "en",
+    dateKey: "2026-06-12",
+    groupSize: 20,
+    now: new Date("2026-06-12T12:00:00Z"),
+  },
+);
+assert.equal(staleFirstGroupPlan.groupIndex, 1);
 
 const memoryCurve = calculateMemoryCurve(planWords.slice(0, 5), secondGroupProgress, new Date("2026-06-12T12:00:00Z"));
 assert.equal(memoryCurve.total, 5);

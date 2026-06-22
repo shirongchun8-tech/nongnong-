@@ -1,24 +1,24 @@
-const CACHE_NAME = "language-word-studio-group-memory-curve-v3";
+const CACHE_NAME = "language-word-studio-group-examples-v2-v3";
 
 const OFFLINE_ASSETS = [
   "./",
-  "./index.html?v=group-memory-curve",
-  "./languages.html?v=group-memory-curve",
-  "./languages-new.html?v=group-memory-curve",
+  "./index.html?v=group-examples-v2",
+  "./languages.html?v=group-examples-v2",
+  "./languages-new.html?v=group-examples-v2",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./src/styles.css?v=group-memory-curve",
-  "./src/languages.css?v=group-memory-curve",
-  "./src/main.js?v=group-memory-curve",
-  "./src/languages.js?v=group-memory-curve",
-  "./src/languageData.js?v=group-memory-curve",
-  "./src/languageStorage.js?v=group-memory-curve",
-  "./src/languageSpeech.js?v=group-memory-curve",
-  "./src/storage.js?v=group-memory-curve",
-  "./src/speech.js?v=group-memory-curve",
-  "./src/data/courseData.js?v=group-memory-curve",
-  "./src/data/word1368Data.js?v=group-memory-curve",
+  "./src/styles.css?v=group-examples-v2",
+  "./src/languages.css?v=group-examples-v2",
+  "./src/main.js?v=group-examples-v2",
+  "./src/languages.js?v=group-examples-v2",
+  "./src/languageData.js?v=group-examples-v2",
+  "./src/languageStorage.js?v=group-examples-v2",
+  "./src/languageSpeech.js?v=group-examples-v2",
+  "./src/storage.js?v=group-examples-v2",
+  "./src/speech.js?v=group-examples-v2",
+  "./src/data/courseData.js?v=group-examples-v2",
+  "./src/data/word1368Data.js?v=group-examples-v2",
 ];
 
 self.addEventListener("install", (event) => {
@@ -42,7 +42,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=group-memory-curve")));
+    event.respondWith(fetch(event.request).catch(() => caches.match("./languages.html?v=group-examples-v2")));
     return;
   }
   event.respondWith(
@@ -56,7 +56,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=group-memory-curve");
+          if (event.request.mode === "navigate") return caches.match("./languages-new.html?v=group-examples-v2");
           return undefined;
         });
     }),

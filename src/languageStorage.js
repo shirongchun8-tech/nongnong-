@@ -279,6 +279,10 @@ function groupRiskWords(words, progress, groupIndex, groupSize, now = new Date()
     .sort(byPlanPriority(progress, now));
 }
 
+function sameStringList(left = [], right = []) {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
 export function ensureDailyLanguagePlan(progress, words, options = {}) {
   const normalized = normalizeLanguageProgress(progress);
   const languageId = normalizeLanguageId(options.languageId);
@@ -287,9 +291,6 @@ export function ensureDailyLanguagePlan(progress, words, options = {}) {
   const reviewLimit = Number(options.reviewLimit) || DEFAULT_DAILY_LANGUAGE_PLAN.reviewLimit;
   const now = options.now || new Date();
   const groupIndex = groupIndexForProgress(words, normalized, groupSize);
-  const existing = normalized.dailyPlans[languageId];
-  if (existing?.dateKey === dateKey && existing.groupIndex === groupIndex && existing.groupSize === groupSize) return existing;
-
   const groupWords = words.slice(groupIndex * groupSize, (groupIndex + 1) * groupSize);
   const groupWordIds = groupWords.map((word) => word.id);
   const newWordIds = groupWords
@@ -298,6 +299,17 @@ export function ensureDailyLanguagePlan(progress, words, options = {}) {
   const reviewWordIds = groupRiskWords(words, normalized, groupIndex, groupSize, now)
     .slice(0, reviewLimit)
     .map((word) => word.id);
+  const existing = normalized.dailyPlans[languageId];
+  if (
+    existing?.dateKey === dateKey &&
+    existing.groupIndex === groupIndex &&
+    existing.groupSize === groupSize &&
+    sameStringList(existing.groupWordIds, groupWordIds) &&
+    sameStringList(existing.newWordIds, newWordIds) &&
+    sameStringList(existing.reviewWordIds, reviewWordIds)
+  ) {
+    return existing;
+  }
 
   return {
     dateKey,
@@ -308,8 +320,8 @@ export function ensureDailyLanguagePlan(progress, words, options = {}) {
     groupWordIds,
     newWordIds,
     reviewWordIds,
-    completedNewIds: [],
-    completedReviewIds: [],
+    completedNewIds: existing?.dateKey === dateKey ? existing.completedNewIds.filter((id) => newWordIds.includes(id)) : [],
+    completedReviewIds: existing?.dateKey === dateKey ? existing.completedReviewIds.filter((id) => reviewWordIds.includes(id)) : [],
     updatedAt: now.toISOString(),
   };
 }
@@ -320,14 +332,15 @@ export function saveDailyLanguagePlan(progress, languageId, plan) {
   return saveLanguageProgress(normalized);
 }
 
-export function completeDailyLanguageWord(progress, languageId, wordId) {
+export function completeDailyLanguageWord(progress, languageId, wordId, rating = "known") {
   const normalized = normalizeLanguageProgress(progress);
   const cleanLanguageId = normalizeLanguageId(languageId);
   const plan = normalized.dailyPlans[cleanLanguageId];
   if (!plan) return normalized;
   const cleanWordId = cleanText(wordId);
+  const cleanRating = rating === "fuzzy" ? "vague" : cleanText(rating);
   const add = (values) => (values.includes(cleanWordId) ? values : [...values, cleanWordId]);
-  if (plan.newWordIds.includes(cleanWordId)) plan.completedNewIds = add(plan.completedNewIds);
+  if (cleanRating === "known" && plan.newWordIds.includes(cleanWordId)) plan.completedNewIds = add(plan.completedNewIds);
   if (plan.reviewWordIds.includes(cleanWordId)) plan.completedReviewIds = add(plan.completedReviewIds);
   normalized.dailyPlans[cleanLanguageId] = normalizeDailyPlan({ ...plan, updatedAt: new Date().toISOString() });
   return saveLanguageProgress(normalized);
@@ -337,6 +350,7 @@ export function getDailyLanguagePlanStats(plan) {
   const normalized = normalizeDailyPlan(plan);
   const newDone = normalized.completedNewIds.filter((id) => normalized.newWordIds.includes(id)).length;
   const reviewDone = normalized.completedReviewIds.filter((id) => normalized.reviewWordIds.includes(id)).length;
+  const groupDone = Math.max(0, normalized.groupWordIds.length - normalized.newWordIds.length);
   return {
     newDone,
     newTotal: normalized.newWordIds.length,
@@ -345,7 +359,7 @@ export function getDailyLanguagePlanStats(plan) {
     totalDone: newDone + reviewDone,
     total: normalized.newWordIds.length + normalized.reviewWordIds.length,
     groupIndex: normalized.groupIndex,
-    groupDone: normalized.groupWordIds.length - normalized.newWordIds.length + newDone,
+    groupDone,
     groupTotal: normalized.groupWordIds.length,
   };
 }

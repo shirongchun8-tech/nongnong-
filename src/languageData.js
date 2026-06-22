@@ -1,4 +1,4 @@
-import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data.js?v=group-memory-curve";
+import { word1368English, word1368French, word1368Japanese, word1368Korean } from "./data/word1368Data.js?v=group-examples-v2";
 
 export const languageCatalog = [
   { id: "en", label: "英语", nativeLabel: "English", speechLang: "en-US" },
@@ -268,5 +268,61 @@ export function getVocabularyComparison(word) {
         word: getStarterWords(language.id).find((item) => item.baseTerm === baseTerm) || null,
       };
     }),
+  };
+}
+
+function findWordByBaseTerm(languageId, baseTerm) {
+  return getStarterWords(languageId).find((item) => item.baseTerm === baseTerm) || null;
+}
+
+const generatedExampleTemplates = {
+  en(word, helper) {
+    return {
+      text: `I use ${word.term} with ${helper.term}.`,
+      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
+    };
+  },
+  fr(word, helper) {
+    return {
+      text: `J'utilise ${word.term} avec ${helper.term}.`,
+      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
+    };
+  },
+  ja(word, helper) {
+    return {
+      text: `${word.term}と${helper.term}を使います。`,
+      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
+    };
+  },
+  ko(word, helper) {
+    return {
+      text: `${word.term}와 ${helper.term}을 사용해요.`,
+      chinese: `这个句子使用 ${word.chinese} 和 ${helper.chinese}。`,
+    };
+  },
+};
+
+export function getWordExample(word) {
+  if (!word) return null;
+  if (word.example) {
+    return {
+      text: word.example,
+      chinese: word.chinese,
+      generated: false,
+      vocabularyTerms: [word.term],
+    };
+  }
+  const languageId = word.languageId || "en";
+  const helperBaseTerms = ["food", "book", "school", "home", "friend", "today"];
+  const helper =
+    helperBaseTerms.map((baseTerm) => findWordByBaseTerm(languageId, baseTerm)).find((item) => item && item.term !== word.term) ||
+    getStarterWords(languageId).find((item) => item.term !== word.term) ||
+    word;
+  const template = generatedExampleTemplates[languageId] || generatedExampleTemplates.en;
+  const generated = template(word, helper);
+  return {
+    ...generated,
+    generated: true,
+    vocabularyTerms: [...new Set([word.term, helper.term].filter(Boolean))],
   };
 }

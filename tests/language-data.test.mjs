@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { getStarterWords, getVocabularyComparison } from "../src/languageData.js";
+import { getStarterWords, getVocabularyComparison, getWordExample } from "../src/languageData.js";
 
 const imported1368 = ["en", "fr", "ja", "ko"].map((languageId) => {
   const words = getStarterWords(languageId).filter((word) => word.source === "1368词库");
@@ -27,6 +27,19 @@ assert.ok(holdComparison.items.every((item) => item.word?.term));
 assert.ok(holdComparison.items.find((item) => item.languageId === "ja")?.word.reading);
 assert.equal(holdComparison.items.find((item) => item.languageId === "ja")?.word.term, "つかむ");
 assert.equal(holdComparison.items.find((item) => item.languageId === "ja")?.word.reading, "tsukamu");
+
+const generatedHoldExample = getWordExample({
+  ...imported1368[0][0],
+  example: "",
+});
+assert.equal(generatedHoldExample.generated, true);
+assert.match(generatedHoldExample.text, /hold/);
+assert.match(generatedHoldExample.chinese, /这个句子使用/);
+assert.ok(generatedHoldExample.vocabularyTerms.includes("hold"));
+
+const existingFoodExample = getWordExample(getStarterWords("en").find((word) => word.term === "food"));
+assert.equal(existingFoodExample.generated, false);
+assert.equal(existingFoodExample.text, "This food is good.");
 
 const foodJapanese = getStarterWords("ja").find((word) => word.term === "食べ物");
 const foodComparison = getVocabularyComparison(foodJapanese);

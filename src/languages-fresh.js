@@ -1,4 +1,4 @@
-import { getLanguage, getStarterWords, getVocabularyComparison, languageCatalog } from "./languageData-fresh.js?v=group-memory-curve";
+import { getLanguage, getStarterWords, getVocabularyComparison, getWordExample, languageCatalog } from "./languageData-fresh.js?v=group-examples-v2";
 import {
   calculateMemoryCurve,
   calculateLanguageStats,
@@ -18,13 +18,13 @@ import {
   saveDailyLanguagePlan,
   saveLanguageProgress,
   upsertLanguageWord,
-} from "./languageStorage.js?v=group-memory-curve";
+} from "./languageStorage.js?v=group-examples-v2";
 import {
   getLanguageVoiceOptions,
   getSelectedLanguageVoiceName,
   setSelectedLanguageVoiceName,
   speakLanguage,
-} from "./languageSpeech.js?v=group-memory-curve";
+} from "./languageSpeech.js?v=group-examples-v2";
 
 const app = document.querySelector("#language-app");
 const THEME_KEY = "multi-language-word-studio-theme";
@@ -289,8 +289,8 @@ function wordsForQueue() {
   if (state.queue === "all") return words;
   if (["unlearned", "unknown", "vague", "known"].includes(state.queue)) return words.filter((word) => wordStatus(word) === state.queue);
   const plan = currentDailyPlan();
-  const completed = new Set([...plan.completedNewIds, ...plan.completedReviewIds]);
-  const plannedIds = [...plan.reviewWordIds, ...plan.newWordIds].filter((id) => !completed.has(id));
+  const completedReviews = new Set(plan.completedReviewIds);
+  const plannedIds = [...plan.reviewWordIds.filter((id) => !completedReviews.has(id)), ...plan.newWordIds];
   const planned = plannedIds.map((id) => words.find((word) => word.id === id)).filter(Boolean);
   if (planned.length) return planned;
   if (state.queue === "smart") return [];
@@ -470,7 +470,7 @@ function renderDailyPlanPanel() {
     <section class="daily-plan-strip" aria-label="今日计划">
       <strong>第 ${stats.groupIndex + 1} 组</strong>
       <span>本组 ${stats.groupDone} / ${stats.groupTotal}</span>
-      <span>待学 ${Math.max(0, stats.newTotal - stats.newDone)}</span>
+      <span>待学 ${Math.max(0, stats.newTotal)}</span>
       <span>风险 ${Math.max(0, stats.reviewTotal - stats.reviewDone)}</span>
     </section>
   `;
@@ -504,6 +504,7 @@ function renderStudyCard() {
   const progress = `${(state.cardIndex % words.length) + 1} / ${words.length}`;
   const status = wordStatus(word);
   const flipLabel = state.flipped ? "隐藏答案" : "显示答案";
+  const example = getWordExample(word);
   return `
     <section class="panel word-study-panel language-study-panel unified-study-panel">
       <div class="unified-topline">
@@ -521,14 +522,20 @@ function renderStudyCard() {
               ${renderTapTokens(word.term, word.languageId)}
             </h3>
           </div>
+          ${renderVocabularyComparison(word)}
           ${
             state.flipped
               ? `<div class="unified-answer visible">
                   <small>中文</small>
                   <p>${escapeHtml(word.chinese)}</p>
                   ${word.reading ? `<small>读音</small><p>${escapeHtml(word.reading)}</p>` : ""}
-                  ${word.example ? `<small>例句</small><p lang="${escapeHtml(language.speechLang)}">${escapeHtml(word.example)}</p>` : ""}
-                  ${renderVocabularyComparison(word)}
+                  ${
+                    example
+                      ? `<small>${example.generated ? "生成例句" : "例句"}</small>
+                          <p lang="${escapeHtml(language.speechLang)}">${escapeHtml(example.text)}</p>
+                          ${example.generated ? `<small>词库词</small><p>${escapeHtml(example.vocabularyTerms.join(" / "))}</p>` : ""}`
+                      : ""
+                  }
                 </div>`
               : ""
           }
@@ -763,7 +770,8 @@ app.addEventListener("click", (event) => {
     const [wordId, rating] = target.dataset.rateLanguage.split(":");
     ensureTodayPlan();
     state.progress = rateLanguageWord(state.progress, wordId, rating);
-    state.progress = completeDailyLanguageWord(state.progress, state.languageId, wordId);
+    state.progress = completeDailyLanguageWord(state.progress, state.languageId, wordId, rating);
+    ensureTodayPlan();
     state.message = `已记录：${ratingLabel(rating)}。`;
     state.practiceCount += 1;
     state.forceKnownReview = state.queue === "smart" && state.practiceCount > 0 && state.practiceCount % 20 === 0;

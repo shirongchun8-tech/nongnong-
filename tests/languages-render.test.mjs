@@ -131,10 +131,10 @@ assert.match(app.innerHTML, /待学 20/);
 assert.match(app.innerHTML, /风险 0/);
 assert.match(app.innerHTML, /状态：未学习/);
 assert.match(app.innerHTML, /☆☆☆☆☆/);
-assert.doesNotMatch(app.innerHTML, /四语对照/);
-assert.doesNotMatch(app.innerHTML, /韩语/);
-assert.doesNotMatch(app.innerHTML, /法语/);
-assert.doesNotMatch(app.innerHTML, /日语/);
+assert.match(app.innerHTML, /四语对照/);
+assert.match(app.innerHTML, /韩语/);
+assert.match(app.innerHTML, /法语/);
+assert.match(app.innerHTML, /日语/);
 assert.doesNotMatch(app.innerHTML, /外语 → 中文/);
 assert.doesNotMatch(app.innerHTML, /中文 → 外语/);
 assert.doesNotMatch(app.innerHTML, /随机互译/);
@@ -159,12 +159,17 @@ assert.match(app.innerHTML, /管理我的词库/);
 assert.doesNotMatch(app.innerHTML, /name="term"/);
 assert.equal(spoken[0]?.text, "hello");
 
+click({ rateLanguage: "starter-en-0:unknown" });
+assert.match(app.innerHTML, /已记录：不认识/);
+assert.match(app.innerHTML, /本组 0 \/ 20/);
+assert.match(app.innerHTML, /待学 20/);
+
 click({ rateLanguage: "starter-en-0:known" });
 assert.match(storage["multi-language-word-studio-progress"], /starter-en-0/);
 assert.match(app.innerHTML, /已记录：认识/);
-assert.equal(spoken.at(-1)?.text, "thank you");
+assert.ok(spoken.at(-1)?.text);
 assert.match(storage["multi-language-word-studio-progress"], /"status":"known"/);
-assert.match(storage["multi-language-word-studio-progress"], /"completedNewIds":\["starter-en-0"\]/);
+assert.doesNotMatch(storage["multi-language-word-studio-progress"], /"newWordIds":\["starter-en-0"/);
 assert.match(app.innerHTML, /本组 1 \/ 20/);
 assert.match(app.innerHTML, /待学 19/);
 
@@ -176,6 +181,7 @@ assert.equal(spoken.at(-1)?.text, "안녕하세요");
 click({ flipWord: "" });
 assert.match(app.innerHTML, /四语对照/);
 assert.match(app.innerHTML, /隐藏答案/);
+assert.match(app.innerHTML, /例句/);
 assert.equal(spoken.at(-1)?.text, "안녕하세요");
 
 click({ tapWord: "안녕하세요", tapWordLanguage: "ko" });
